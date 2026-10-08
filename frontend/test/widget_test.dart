@@ -7,6 +7,6 @@ void main() {
     await tester.pumpWidget(const SleepWiseApp());
 
     expect(find.text('SleepWise'), findsOneWidget);
-    expect(find.text('Prediksi Kualitas Tidur'), findsOneWidget);
+    expect(find.text('Statistik & Tren Tidur'), findsOneWidget);
   });
 }

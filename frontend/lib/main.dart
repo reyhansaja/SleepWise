@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'pages/prediction_page.dart';
+import 'pages/statistics_page.dart';
 
 void main() {
   runApp(const SleepWiseApp());
@@ -28,7 +29,7 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  int _currentIndex = 1; // Start on Prediksi tab
+  int _currentIndex = 3; // Default to Statistik to directly showcase the new page
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +43,8 @@ class _MainShellState extends State<MainShell> {
     switch (_currentIndex) {
       case 1:
         return const PredictionPage();
+      case 3:
+        return const StatisticsPage();
       default:
         return _buildPlaceholderPage(_getPageTitle(_currentIndex));
     }
@@ -57,8 +60,6 @@ class _MainShellState extends State<MainShell> {
         return 'Riwayat';
       case 3:
         return 'Statistik';
-      case 4:
-        return 'Model ML';
       default:
         return '';
     }
@@ -116,10 +117,6 @@ class _MainShellState extends State<MainShell> {
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart_rounded),
             label: 'Statistik',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.model_training_rounded),
-            label: 'Model ML',
           ),
         ],
       ),
