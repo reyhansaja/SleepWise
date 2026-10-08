@@ -5,6 +5,7 @@ import 'pages/register_page.dart';
 import 'pages/dashboard_view.dart';
 import 'pages/prediction_page.dart';
 import 'pages/statistics_page.dart';
+import 'pages/profile_page.dart';
 
 void main() {
   runApp(const SleepWiseApp());
@@ -29,6 +30,7 @@ class SleepWiseApp extends StatelessWidget {
         '/dashboard': (context) => const MainShell(initialIndex: 0),
         '/predict': (context) => const MainShell(initialIndex: 1),
         '/statistics': (context) => const MainShell(initialIndex: 3),
+        '/profile': (context) => const MainShell(initialIndex: 4),
       },
     );
   }
@@ -73,6 +75,8 @@ class _MainShellState extends State<MainShell> {
         return _buildPlaceholderPage('Riwayat');
       case 3:
         return const StatisticsPage();
+      case 4:
+        return const ProfilePage();
       default:
         return _buildPlaceholderPage(_getPageTitle(_currentIndex));
     }
@@ -88,6 +92,8 @@ class _MainShellState extends State<MainShell> {
         return 'Riwayat';
       case 3:
         return 'Statistik';
+      case 4:
+        return 'Profil';
       default:
         return '';
     }
@@ -165,6 +171,10 @@ class _MainShellState extends State<MainShell> {
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart_rounded),
             label: 'Statistik',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_rounded),
+            label: 'Profil',
           ),
         ],
       ),
