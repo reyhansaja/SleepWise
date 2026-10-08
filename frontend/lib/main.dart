@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
+import 'pages/history_page.dart';
 
 void main() {
   runApp(const SleepWiseApp());
@@ -25,6 +26,7 @@ class SleepWiseApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
+        '/history': (context) => const HistoryPage(),
       },
     );
   }

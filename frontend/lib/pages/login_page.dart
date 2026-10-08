@@ -179,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
                         width: double.infinity,
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () => Navigator.pushNamed(context, '/history'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF818CF8),
                             elevation: 0,
