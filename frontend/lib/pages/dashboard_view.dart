@@ -11,7 +11,14 @@ const _orange = Color(0xFFFFB34D);
 
 // Halaman utama menyimpan tab yang dipilih dan menyusun konten yang bisa digulir.
 class DashboardView extends StatefulWidget {
-  const DashboardView({super.key});
+  final bool showBottomNav;
+  final ValueChanged<int>? onTabSelected;
+
+  const DashboardView({
+    super.key,
+    this.showBottomNav = true,
+    this.onTabSelected,
+  });
 
   @override
   State<DashboardView> createState() => _DashboardViewState();
@@ -23,6 +30,7 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -45,10 +53,14 @@ class _DashboardViewState extends State<DashboardView> {
                 },
               ),
             ),
-            _BottomNavigation(
-              selectedIndex: _selectedTab,
-              onSelected: (index) => setState(() => _selectedTab = index),
-            ),
+            if (widget.showBottomNav)
+              _BottomNavigation(
+                selectedIndex: _selectedTab,
+                onSelected: (index) {
+                  setState(() => _selectedTab = index);
+                  widget.onTabSelected?.call(index);
+                },
+              ),
           ],
         ),
       ),
