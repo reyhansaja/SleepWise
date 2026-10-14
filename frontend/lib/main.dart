@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
+import 'pages/history_page.dart';
 import 'pages/dashboard_view.dart';
 import 'pages/prediction_page.dart';
 import 'pages/statistics_page.dart';
@@ -26,6 +27,7 @@ class SleepWiseApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
+        '/history': (context) => const HistoryPage(),
         '/main': (context) => const MainShell(),
         '/dashboard': (context) => const MainShell(initialIndex: 0),
         '/predict': (context) => const MainShell(initialIndex: 1),
