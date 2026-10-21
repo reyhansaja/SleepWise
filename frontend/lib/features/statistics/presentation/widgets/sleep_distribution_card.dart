@@ -8,6 +8,8 @@ class SleepDistributionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -16,14 +18,14 @@ class SleepDistributionCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Distribusi Kualitas Tidur',
                       style: TextStyle(
-                        color: AppTheme.textPrimary,
+                        color: colors.onSurface,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -31,7 +33,10 @@ class SleepDistributionCard extends StatelessWidget {
                     SizedBox(height: 3),
                     Text(
                       'Klasifikasi model Random Forest • 7 Hari',
-                      style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -49,11 +54,11 @@ class SleepDistributionCard extends StatelessWidget {
                     width: 0.8,
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   '70%\nOPTIMAL',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.accent,
+                    color: colors.secondary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     height: 1.1,
@@ -91,10 +96,10 @@ class SleepDistributionCard extends StatelessWidget {
                           size: 18,
                         ),
                         const SizedBox(height: 2),
-                        const Text(
+                        Text(
                           '70%',
                           style: TextStyle(
-                            color: AppTheme.textPrimary,
+                            color: colors.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -120,6 +125,7 @@ class SleepDistributionCard extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildLegendItem(
+                      context: context,
                       dotColor: AppTheme.accent,
                       title: 'Good (Optimal)',
                       subtitle: '> 7.0 Jam rest • Rendah bangun',
@@ -128,6 +134,7 @@ class SleepDistributionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     _buildLegendItem(
+                      context: context,
                       dotColor: AppTheme.accentOrange,
                       title: 'Average (Cukup)',
                       subtitle: '6.0 - 6.9 Jam • Sedang',
@@ -136,6 +143,7 @@ class SleepDistributionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     _buildLegendItem(
+                      context: context,
                       dotColor: AppTheme.accentPink,
                       title: 'Poor (Kurang)',
                       subtitle: '< 6.0 Jam • Restless',
@@ -165,11 +173,11 @@ class SleepDistributionCard extends StatelessWidget {
                   size: 15,
                 ),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Standar National Sleep Foundation: Target durasi tidur restoratif dewasa muda 7–9 jam/malam.',
                     style: TextStyle(
-                      color: AppTheme.textMuted,
+                      color: colors.onSurfaceVariant,
                       fontSize: 10.5,
                       height: 1.35,
                     ),
@@ -184,12 +192,15 @@ class SleepDistributionCard extends StatelessWidget {
   }
 
   Widget _buildLegendItem({
+    required BuildContext context,
     required Color dotColor,
     required String title,
     required String subtitle,
     required String percentage,
     required Color percentageColor,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -212,8 +223,8 @@ class SleepDistributionCard extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                style: TextStyle(
+                  color: colors.onSurface,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -221,7 +232,7 @@ class SleepDistributionCard extends StatelessWidget {
               const SizedBox(height: 1),
               Text(
                 subtitle,
-                style: const TextStyle(color: AppTheme.textMuted, fontSize: 10),
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 10),
               ),
             ],
           ),

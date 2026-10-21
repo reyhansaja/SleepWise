@@ -21,6 +21,8 @@ class BmiWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,12 +49,12 @@ class BmiWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppTheme.primary.withValues(alpha: 0.2)
-                        : AppTheme.surface,
+                        : colors.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                     border: Border.all(
                       color: isSelected
                           ? AppTheme.primary
-                          : AppTheme.surfaceBorder,
+                          : colors.outlineVariant,
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -60,8 +62,8 @@ class BmiWidget extends StatelessWidget {
                     _options[index],
                     style: TextStyle(
                       color: isSelected
-                          ? AppTheme.primaryLight
-                          : AppTheme.textSecondary,
+                          ? colors.primary
+                          : colors.onSurfaceVariant,
                       fontSize: 13,
                       fontWeight: isSelected
                           ? FontWeight.w600

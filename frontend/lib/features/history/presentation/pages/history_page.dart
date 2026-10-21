@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/features/history/data/repositories/local_history_repository.dart';
 import 'package:frontend/features/history/domain/entities/sleep_record.dart';
 import 'package:frontend/features/history/domain/usecases/get_sleep_history.dart';
 
-class HistoryPage extends StatefulWidget {
+class HistoryPage extends ConsumerStatefulWidget {
   const HistoryPage({super.key});
 
   @override
-  State<HistoryPage> createState() => _HistoryPageState();
+  ConsumerState<HistoryPage> createState() => _HistoryPageState();
 }
 
-class _HistoryPageState extends State<HistoryPage> {
-  static const _background = Color(0xFF090D16);
-  static const _surface = Color(0xFF141B2E);
-  static const _muted = Color(0xFF8994AD);
-  static const _primary = Color(0xFFB5BEF7);
-
+class _HistoryPageState extends ConsumerState<HistoryPage> {
   final _getSleepHistory = const GetSleepHistory(LocalHistoryRepository());
   late final List<SleepRecord> _records;
   String _selectedFilter = 'Semua';
@@ -45,8 +42,9 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: _background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -63,12 +61,12 @@ class _HistoryPageState extends State<HistoryPage> {
                   _buildFilters(),
                   const SizedBox(height: 14),
                   if (_visibleRecords.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(32),
+                    Padding(
+                      padding: const EdgeInsets.all(32),
                       child: Center(
                         child: Text(
                           'Tidak ada riwayat yang cocok.',
-                          style: TextStyle(color: _muted),
+                          style: TextStyle(color: colors.onSurfaceVariant),
                         ),
                       ),
                     )
@@ -84,22 +82,25 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Widget _buildHeader() {
+    final colors = Theme.of(context).colorScheme;
+    final isDarkMode = colors.brightness == Brightness.dark;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Riwayat Prediksi SleepWise',
-                style: TextStyle(color: Color(0xFF7F8AA4), fontSize: 13),
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
               ),
               SizedBox(height: 5),
               Text(
                 'Riwayat Prediksi',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colors.onSurface,
                   fontSize: 23,
                   fontWeight: FontWeight.w800,
                 ),
@@ -107,64 +108,83 @@ class _HistoryPageState extends State<HistoryPage> {
               SizedBox(height: 3),
               Text(
                 'Arsip evaluasi & analisis cerdas tidurmu',
-                style: TextStyle(color: Color(0xFF9BA5BB), fontSize: 11),
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
               ),
             ],
           ),
         ),
-        OutlinedButton.icon(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Ekspor riwayat segera tersedia.')),
-            );
-          },
-          icon: const Icon(Icons.ios_share_rounded, size: 13),
-          label: const Text('Ekspor'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: _primary,
-            side: const BorderSide(color: Color(0xFF3A4262)),
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-            textStyle: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: 'Ganti Tema',
+              visualDensity: VisualDensity.compact,
+              onPressed: () {
+                ref.read(themeModeProvider.notifier).toggle();
+              },
+              icon: Icon(
+                isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
+              ),
             ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+            OutlinedButton.icon(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Ekspor riwayat segera tersedia.'),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.ios_share_rounded, size: 13),
+              label: const Text('Ekspor'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colors.primary,
+                side: BorderSide(color: colors.primary.withValues(alpha: 0.35)),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+                textStyle: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );
   }
 
   Widget _buildSummary() {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: const Color(0xFF252E47)),
       ),
       child: Row(
         children: [
           Container(
             width: 43,
             height: 43,
-            decoration: const BoxDecoration(
-              color: Color(0xFF252C48),
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.bedtime_rounded, color: _primary, size: 22),
+            child: Icon(Icons.bedtime_rounded, color: colors.primary, size: 22),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '34',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: colors.onSurface,
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
                   ),
@@ -172,7 +192,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 Text(
                   'Riwayat',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: colors.onSurface,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -180,7 +200,11 @@ class _HistoryPageState extends State<HistoryPage> {
                 SizedBox(height: 4),
                 Text(
                   'Model terverifikasi •\nTerenkripsi diperangkat',
-                  style: TextStyle(color: _muted, fontSize: 9, height: 1.3),
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 9,
+                    height: 1.3,
+                  ),
                 ),
               ],
             ),
@@ -188,33 +212,39 @@ class _HistoryPageState extends State<HistoryPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
             decoration: BoxDecoration(
-              color: const Color(0xFF123A37),
+              color: const Color(0xFF45D5B0).withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(7),
             ),
-            child: const Text(
+            child: Text(
               'Lokal\nSinkron',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0xFF45D5B0),
+                color: colors.brightness == Brightness.dark
+                    ? const Color(0xFF45D5B0)
+                    : const Color(0xFF047857),
                 fontSize: 8,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
           const SizedBox(width: 10),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 'AKURASI\nRERATA',
                 textAlign: TextAlign.right,
-                style: TextStyle(color: _muted, fontSize: 7, height: 1.2),
+                style: TextStyle(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 7,
+                  height: 1.2,
+                ),
               ),
               SizedBox(height: 2),
               Text(
                 '92.4%',
                 style: TextStyle(
-                  color: Color(0xFFBEC6FF),
+                  color: colors.primary,
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
                 ),
@@ -227,29 +257,36 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Widget _buildSearchField() {
+    final colors = Theme.of(context).colorScheme;
+
     return TextField(
       onChanged: (value) => setState(() => _searchQuery = value),
-      style: const TextStyle(color: Colors.white, fontSize: 11),
+      style: TextStyle(color: colors.onSurface, fontSize: 11),
       decoration: InputDecoration(
         hintText: 'Cari tanggal, faktor stres, atau model...',
-        hintStyle: const TextStyle(color: Color(0xFF707B94), fontSize: 10),
-        prefixIcon: const Icon(
+        hintStyle: TextStyle(color: colors.onSurfaceVariant, fontSize: 10),
+        prefixIcon: Icon(
           Icons.search_rounded,
-          color: Color(0xFF8F9AB2),
+          color: colors.onSurfaceVariant,
           size: 15,
         ),
         filled: true,
-        fillColor: _surface,
+        fillColor: colors.surface,
         contentPadding: const EdgeInsets.symmetric(vertical: 9),
-        border: OutlineInputBorder(
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(9),
           borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(9),
+          borderSide: BorderSide(color: colors.primary),
         ),
       ),
     );
   }
 
   Widget _buildFilters() {
+    final colors = Theme.of(context).colorScheme;
     const filters = ['Semua', 'Random Forest', 'Decision Tree', 'Good Sleep'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -263,12 +300,12 @@ class _HistoryPageState extends State<HistoryPage> {
               selected: selected,
               onSelected: (_) => setState(() => _selectedFilter = filter),
               labelStyle: TextStyle(
-                color: selected ? Colors.white : const Color(0xFF9CA7BC),
+                color: selected ? colors.onPrimary : colors.onSurfaceVariant,
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
               ),
-              backgroundColor: const Color(0xFF1D253B),
-              selectedColor: const Color(0xFF4C557D),
+              backgroundColor: colors.surface,
+              selectedColor: colors.primary,
               side: BorderSide.none,
               visualDensity: VisualDensity.compact,
               padding: const EdgeInsets.symmetric(horizontal: 3),
@@ -283,12 +320,13 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Widget _buildRecordCard(SleepRecord record) {
+    final colors = Theme.of(context).colorScheme;
     final qualityColor = _qualityColor(record.quality);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.fromLTRB(12, 11, 12, 10),
       decoration: BoxDecoration(
-        color: _surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -307,8 +345,8 @@ class _HistoryPageState extends State<HistoryPage> {
               Expanded(
                 child: Text(
                   record.date,
-                  style: const TextStyle(
-                    color: Color(0xFFCBD3E3),
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
                   ),
@@ -380,7 +418,7 @@ class _HistoryPageState extends State<HistoryPage> {
               TextButton(
                 onPressed: () {},
                 style: TextButton.styleFrom(
-                  foregroundColor: _primary,
+                  foregroundColor: colors.primary,
                   padding: const EdgeInsets.symmetric(horizontal: 7),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -398,14 +436,16 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Widget _metric(IconData icon, String value, String label) {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       children: [
-        Icon(icon, color: const Color(0xFFB8C0E8), size: 15),
+        Icon(icon, color: colors.primary, size: 15),
         const SizedBox(height: 3),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: colors.onSurface,
             fontSize: 12,
             fontWeight: FontWeight.w800,
           ),
@@ -413,7 +453,7 @@ class _HistoryPageState extends State<HistoryPage> {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(color: Color(0xFF8893AB), fontSize: 8),
+          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 8),
         ),
       ],
     );

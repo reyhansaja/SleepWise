@@ -7,6 +7,8 @@ class SleepCorrelationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -15,13 +17,13 @@ class SleepCorrelationCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Korelasi Faktor Tidur (ML)',
                     style: TextStyle(
-                      color: AppTheme.textPrimary,
+                      color: colors.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -29,7 +31,10 @@ class SleepCorrelationCard extends StatelessWidget {
                   SizedBox(height: 3),
                   Text(
                     'Random Forest Shapley Importance Values',
-                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -43,9 +48,9 @@ class SleepCorrelationCard extends StatelessWidget {
                     width: 0.8,
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.psychology_outlined,
-                  color: AppTheme.primaryLight,
+                  color: colors.primary,
                   size: 18,
                 ),
               ),
@@ -55,6 +60,7 @@ class SleepCorrelationCard extends StatelessWidget {
 
           // Factor 1: Durasi Layar Malam
           _buildFactorItem(
+            context: context,
             icon: Icons.phone_android_rounded,
             title: 'Durasi Layar Malam',
             badgeText: '-42% (Korelasi Negatif Kuat)',
@@ -67,6 +73,7 @@ class SleepCorrelationCard extends StatelessWidget {
 
           // Factor 2: Tingkat Stres Harian
           _buildFactorItem(
+            context: context,
             icon: Icons.sentiment_dissatisfied_rounded,
             title: 'Tingkat Stres Harian',
             badgeText: '-28% (Pengaruh Signifikan)',
@@ -79,6 +86,7 @@ class SleepCorrelationCard extends StatelessWidget {
 
           // Factor 3: Aktivitas Fisik Sore
           _buildFactorItem(
+            context: context,
             icon: Icons.directions_run_rounded,
             title: 'Aktivitas Fisik Sore',
             badgeText: '+35% (Korelasi Positif Kuat)',
@@ -93,6 +101,7 @@ class SleepCorrelationCard extends StatelessWidget {
   }
 
   Widget _buildFactorItem({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String badgeText,
@@ -100,6 +109,8 @@ class SleepCorrelationCard extends StatelessWidget {
     required double progress,
     required String description,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -109,12 +120,12 @@ class SleepCorrelationCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: AppTheme.textPrimary, size: 16),
+                Icon(icon, color: colors.onSurface, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                   ),
@@ -138,7 +149,7 @@ class SleepCorrelationCard extends StatelessWidget {
           height: 5,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppTheme.surfaceBorder,
+            color: colors.outline.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(3),
           ),
           child: FractionallySizedBox(
@@ -163,8 +174,8 @@ class SleepCorrelationCard extends StatelessWidget {
         // Description
         Text(
           description,
-          style: const TextStyle(
-            color: AppTheme.textSecondary,
+          style: TextStyle(
+            color: colors.onSurfaceVariant,
             fontSize: 11,
             height: 1.35,
           ),

@@ -8,12 +8,17 @@ class AiInsightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDarkMode = colors.brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [const Color(0xFF1E1C38), AppTheme.cardBackground],
+          colors: isDarkMode
+              ? const [Color(0xFF1E1C38), AppTheme.cardBackground]
+              : [colors.surface, colors.surfaceContainerHighest],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -52,10 +57,10 @@ class AiInsightCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'INSIGHT & KESIMPULAN AI',
                     style: TextStyle(
-                      color: AppTheme.primaryLight,
+                      color: colors.primary,
                       fontSize: 10.5,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.8,
@@ -63,10 +68,10 @@ class AiInsightCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const Text(
+              Text(
                 'Confidence 96.4%',
                 style: TextStyle(
-                  color: AppTheme.textMuted,
+                  color: colors.onSurfaceVariant,
                   fontSize: 10.5,
                   fontWeight: FontWeight.w500,
                 ),
@@ -76,10 +81,10 @@ class AiInsightCard extends StatelessWidget {
           const SizedBox(height: 14),
 
           // Title
-          const Text(
+          Text(
             'Optimalisasi Pola Digital Anda',
             style: TextStyle(
-              color: AppTheme.textPrimary,
+              color: colors.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -87,10 +92,10 @@ class AiInsightCard extends StatelessWidget {
           const SizedBox(height: 8),
 
           // Quote body
-          const Text(
+          Text(
             '“Pola tidur Anda paling stabil saat waktu layar dibatasi di bawah 30 menit sebelum istirahat. Mempertahankan rutinitas santai pukul 22:30 memprediksi efisiensi tidur 88%+ malam ini.”',
             style: TextStyle(
-              color: AppTheme.textSecondary,
+              color: colors.onSurfaceVariant,
               fontSize: 12.5,
               height: 1.5,
               fontStyle: FontStyle.italic,
@@ -111,10 +116,10 @@ class AiInsightCard extends StatelessWidget {
                     size: 16,
                   ),
                   const SizedBox(width: 6),
-                  const Text(
+                  Text(
                     'Rekomendasi\nTerverifikasi',
                     style: TextStyle(
-                      color: AppTheme.accent,
+                      color: colors.secondary,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       height: 1.15,
@@ -131,31 +136,31 @@ class AiInsightCard extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1),
+                    color: colors.primary,
                     borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                        color: colors.primary.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Terapkan Habit',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: colors.onPrimary,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Icon(
                         Icons.arrow_forward_rounded,
-                        color: Colors.white,
+                        color: colors.onPrimary,
                         size: 14,
                       ),
                     ],

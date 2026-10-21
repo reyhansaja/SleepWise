@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/features/statistics/presentation/widgets/ai_insight_card.dart';
 import 'package:frontend/features/statistics/presentation/widgets/metric_summary_cards.dart';
 import 'package:frontend/features/statistics/presentation/widgets/sleep_correlation_card.dart';
 import 'package:frontend/features/statistics/presentation/widgets/sleep_distribution_card.dart';
 import 'package:frontend/features/statistics/presentation/widgets/weekly_trend_chart_card.dart';
 
-class StatisticsPage extends StatefulWidget {
+class StatisticsPage extends ConsumerStatefulWidget {
   const StatisticsPage({super.key});
 
   @override
-  State<StatisticsPage> createState() => _StatisticsPageState();
+  ConsumerState<StatisticsPage> createState() => _StatisticsPageState();
 }
 
-class _StatisticsPageState extends State<StatisticsPage> {
+class _StatisticsPageState extends ConsumerState<StatisticsPage> {
   int _selectedFilterIndex = 0; // 0: 7 Hari, 1: 30 Hari, 2: Semua
 
   static const List<String> _filterOptions = ['7 Hari', '30 Hari', 'Semua'];
@@ -21,7 +23,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -87,6 +88,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   // Header App Bar
   Widget _buildHeader() {
+    final colors = Theme.of(context).colorScheme;
+    final isDarkMode = colors.brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Row(
@@ -113,44 +117,62 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'SleepWise',
                     style: TextStyle(
-                      color: AppTheme.textPrimary,
+                      color: colors.onSurface,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
                     'Statistik',
-                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
             ],
           ),
-          // Profile Avatar
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppTheme.primary.withValues(alpha: 0.5),
-                width: 1.5,
+          Row(
+            children: [
+              IconButton(
+                tooltip: 'Ganti Tema',
+                onPressed: () {
+                  ref.read(themeModeProvider.notifier).toggle();
+                },
+                icon: Icon(
+                  isDarkMode
+                      ? Icons.dark_mode_rounded
+                      : Icons.light_mode_rounded,
+                  color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
+                ),
               ),
-              color: AppTheme.surfaceLight,
-            ),
-            child: ClipOval(
-              child: Icon(
-                Icons.person_rounded,
-                color: AppTheme.textSecondary.withValues(alpha: 0.8),
-                size: 24,
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: colors.primary.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
+                  color: colors.surface,
+                ),
+                child: ClipOval(
+                  child: Icon(
+                    Icons.person_rounded,
+                    color: colors.onSurfaceVariant.withValues(alpha: 0.8),
+                    size: 24,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -159,6 +181,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   // Circadian Analysis Title & Synced ML Badge
   Widget _buildTitleSection() {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -175,10 +199,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Statistik & Tren Tidur',
               style: TextStyle(
-                color: AppTheme.textPrimary,
+                color: colors.onSurface,
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
@@ -186,7 +210,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: AppTheme.cardBackground,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 border: Border.all(
                   color: AppTheme.accent.withValues(alpha: 0.3),
@@ -205,10 +229,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     ),
                   ),
                   const SizedBox(width: 5),
-                  const Text(
+                  Text(
                     'Synced ML',
                     style: TextStyle(
-                      color: AppTheme.textSecondary,
+                      color: colors.onSurfaceVariant,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -224,12 +248,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   // Timeframe Filter Bar (7 Hari, 30 Hari, Semua)
   Widget _buildTimeframeFilter() {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-        border: Border.all(color: AppTheme.surfaceBorder, width: 0.8),
+        border: Border.all(color: colors.outline.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: List.generate(_filterOptions.length, (index) {
@@ -245,16 +271,16 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF6B66FF)
-                      : Colors.transparent,
+                  color: isSelected ? colors.primary : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 ),
                 child: Text(
                   _filterOptions[index],
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.textMuted,
+                    color: isSelected
+                        ? colors.onPrimary
+                        : colors.onSurfaceVariant,
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
@@ -269,6 +295,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   // Download PDF & Share Action Buttons
   Widget _buildBottomActionButtons() {
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         // Download PDF Button
@@ -288,23 +316,25 @@ class _StatisticsPageState extends State<StatisticsPage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  border: Border.all(color: AppTheme.surfaceBorder, width: 0.8),
+                  border: Border.all(
+                    color: colors.outline.withValues(alpha: 0.25),
+                  ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.file_download_outlined,
-                      color: AppTheme.textPrimary,
+                      color: colors.onSurface,
                       size: 18,
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Unduh Laporan PDF',
                       style: TextStyle(
-                        color: AppTheme.textPrimary,
+                        color: colors.onSurface,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -333,13 +363,15 @@ class _StatisticsPageState extends State<StatisticsPage> {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                border: Border.all(color: AppTheme.surfaceBorder, width: 0.8),
+                border: Border.all(
+                  color: colors.outline.withValues(alpha: 0.25),
+                ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.share_outlined,
-                color: AppTheme.textPrimary,
+                color: colors.onSurface,
                 size: 18,
               ),
             ),

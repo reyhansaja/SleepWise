@@ -65,6 +65,7 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final selectedDay = _weekData[_selectedIndex];
 
     return SectionCard(
@@ -75,13 +76,13 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Tren Durasi Mingguan',
                     style: TextStyle(
-                      color: AppTheme.textPrimary,
+                      color: colors.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -89,7 +90,10 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
                   SizedBox(height: 3),
                   Text(
                     'Senin – Minggu • Zona ideal 7-8 Jam',
-                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -105,10 +109,10 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Text(
+                  Text(
                     'Optimal',
                     style: TextStyle(
-                      color: AppTheme.textSecondary,
+                      color: colors.onSurfaceVariant,
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),
@@ -176,7 +180,7 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
                             _selectedIndex = index;
                           });
                         },
-                        child: _buildBarItem(data, isSelected),
+                        child: _buildBarItem(data, isSelected, colors),
                       ),
                     );
                   }),
@@ -190,26 +194,22 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: AppTheme.surface.withValues(alpha: 0.6),
+              color: colors.surface.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               border: Border.all(
-                color: AppTheme.surfaceBorder.withValues(alpha: 0.5),
+                color: colors.outline.withValues(alpha: 0.25),
                 width: 0.5,
               ),
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.touch_app_outlined,
-                  color: AppTheme.primaryLight,
-                  size: 16,
-                ),
+                Icon(Icons.touch_app_outlined, color: colors.primary, size: 16),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Pilih hari pada grafik untuk melihat rincian detail.',
                     style: TextStyle(
-                      color: AppTheme.textSecondary,
+                      color: colors.onSurfaceVariant,
                       fontSize: 10.5,
                     ),
                   ),
@@ -229,8 +229,8 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
                   ),
                   child: Text(
                     '${selectedDay.dayName}: ${selectedDay.duration} Jam',
-                    style: const TextStyle(
-                      color: AppTheme.primaryLight,
+                    style: TextStyle(
+                      color: colors.onPrimary,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -244,7 +244,7 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
     );
   }
 
-  Widget _buildBarItem(DaySleepData data, bool isSelected) {
+  Widget _buildBarItem(DaySleepData data, bool isSelected, ColorScheme colors) {
     // Max scale 10 hours = 120 pixels bar height
     final barHeight = (data.duration / 10.0) * 120;
 
@@ -256,7 +256,7 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
     } else if (data.isOptimal) {
       barColor = AppTheme.accent;
     } else {
-      barColor = const Color(0xFF384358);
+      barColor = colors.surfaceContainerHighest;
     }
 
     return Column(
@@ -267,8 +267,8 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
           '${data.duration}h',
           style: TextStyle(
             color: isSelected
-                ? AppTheme.primaryLight
-                : (data.isOptimal ? AppTheme.accent : AppTheme.textMuted),
+                ? colors.primary
+                : (data.isOptimal ? AppTheme.accent : colors.onSurfaceVariant),
             fontSize: 10,
             fontWeight: isSelected || data.isOptimal
                 ? FontWeight.bold
@@ -287,7 +287,7 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
             color: barColor,
             borderRadius: BorderRadius.circular(6),
             border: isSelected
-                ? Border.all(color: Colors.white, width: 1.5)
+                ? Border.all(color: colors.onSurface, width: 1.5)
                 : null,
             boxShadow: isSelected
                 ? [
@@ -313,7 +313,7 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
         Text(
           data.dayShort,
           style: TextStyle(
-            color: isSelected ? AppTheme.textPrimary : AppTheme.textMuted,
+            color: isSelected ? colors.onSurface : colors.onSurfaceVariant,
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
           ),

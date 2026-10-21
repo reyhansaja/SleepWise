@@ -96,19 +96,19 @@ class _MainShellState extends State<MainShell> {
   }
 
   Widget _buildBottomNav() {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: AppTheme.surface,
-        border: Border(
-          top: BorderSide(color: AppTheme.surfaceBorder, width: 0.5),
-        ),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(top: BorderSide(color: colors.outline, width: 0.5)),
       ),
       child: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: AppTheme.surface,
-        selectedItemColor: AppTheme.primary,
-        unselectedItemColor: AppTheme.textMuted,
+        backgroundColor: colors.surface,
+        selectedItemColor: colors.primary,
+        unselectedItemColor: colors.onSurfaceVariant,
         type: BottomNavigationBarType.fixed,
         selectedFontSize: 11,
         unselectedFontSize: 11,

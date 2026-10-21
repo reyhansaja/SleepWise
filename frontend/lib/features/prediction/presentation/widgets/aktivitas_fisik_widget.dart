@@ -20,6 +20,8 @@ class AktivitasFisikWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,7 +30,7 @@ class AktivitasFisikWidget extends StatelessWidget {
             icon: Icons.directions_run_rounded,
             title: 'Aktivitas Fisik',
             subtitle: 'Gerak aktif & olahraga harian',
-            trailing: _buildSelectedBadge(),
+            trailing: _buildSelectedBadge(context),
           ),
           const SizedBox(height: AppTheme.spacingLg),
           Row(
@@ -49,12 +51,12 @@ class AktivitasFisikWidget extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppTheme.primary.withValues(alpha: 0.2)
-                          : AppTheme.surface,
+                          : colors.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       border: Border.all(
                         color: isSelected
                             ? AppTheme.primary
-                            : AppTheme.surfaceBorder,
+                            : colors.outlineVariant,
                         width: isSelected ? 1.5 : 1,
                       ),
                     ),
@@ -64,8 +66,8 @@ class AktivitasFisikWidget extends StatelessWidget {
                           _options[index]['duration']!,
                           style: TextStyle(
                             color: isSelected
-                                ? AppTheme.primaryLight
-                                : AppTheme.textMuted,
+                                ? colors.primary
+                                : colors.onSurfaceVariant,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -75,8 +77,8 @@ class AktivitasFisikWidget extends StatelessWidget {
                           _options[index]['label']!,
                           style: TextStyle(
                             color: isSelected
-                                ? AppTheme.textPrimary
-                                : AppTheme.textSecondary,
+                                ? colors.onSurface
+                                : colors.onSurfaceVariant,
                             fontSize: 11,
                           ),
                         ),
@@ -92,7 +94,8 @@ class AktivitasFisikWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSelectedBadge() {
+  Widget _buildSelectedBadge(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final label = _options[selectedIndex]['label']!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -102,8 +105,8 @@ class AktivitasFisikWidget extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppTheme.secondary,
+        style: TextStyle(
+          color: colors.secondary,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
