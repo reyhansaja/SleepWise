@@ -39,7 +39,7 @@ class TingkatStresWidget extends StatelessWidget {
           const SizedBox(height: AppTheme.spacingLg),
           _buildSlider(),
           const SizedBox(height: AppTheme.spacingSm),
-          _buildLabels(),
+          _buildLabels(context),
         ],
       ),
     );
@@ -96,13 +96,14 @@ class TingkatStresWidget extends StatelessWidget {
         // Custom gradient track
         LayoutBuilder(
           builder: (context, constraints) {
+            final colors = Theme.of(context).colorScheme;
             final fraction = value / 10;
             return Stack(
               children: [
                 Container(
                   height: 6,
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceBorder,
+                    color: colors.outlineVariant,
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
@@ -149,21 +150,23 @@ class TingkatStresWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildLabels() {
+  Widget _buildLabels(BuildContext context) {
+    final labelColor = Theme.of(context).colorScheme.onSurfaceVariant;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           '1 (Tenang)',
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+          style: TextStyle(color: labelColor, fontSize: 11),
         ),
         Text(
           '5 (Moderat)',
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+          style: TextStyle(color: labelColor, fontSize: 11),
         ),
         Text(
           '10 (Sangat Stres)',
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+          style: TextStyle(color: labelColor, fontSize: 11),
         ),
       ],
     );

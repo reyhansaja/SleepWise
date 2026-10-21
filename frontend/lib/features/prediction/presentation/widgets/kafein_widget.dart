@@ -16,6 +16,8 @@ class KafeinWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,26 +31,29 @@ class KafeinWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildButton(Icons.remove, onDecrement),
+              _buildButton(context, Icons.remove, onDecrement),
               const SizedBox(width: AppTheme.spacingXl),
               Column(
                 children: [
                   Text(
                     '$value',
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
+                    style: TextStyle(
+                      color: colors.onSurface,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Cangkir',
-                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(width: AppTheme.spacingXl),
-              _buildButton(Icons.add, onIncrement),
+              _buildButton(context, Icons.add, onIncrement),
             ],
           ),
         ],
@@ -56,18 +61,23 @@ class KafeinWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildButton(IconData icon, VoidCallback onTap) {
+  Widget _buildButton(
+    BuildContext context,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    final colors = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: colors.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          border: Border.all(color: AppTheme.surfaceBorder),
+          border: Border.all(color: colors.outlineVariant),
         ),
-        child: Icon(icon, color: AppTheme.textSecondary, size: 20),
+        child: Icon(icon, color: colors.onSurfaceVariant, size: 20),
       ),
     );
   }

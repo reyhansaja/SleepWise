@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/core/widgets/sleepwise_logo.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   bool _rememberMe = false;
   bool _isObscure = true;
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeModeProvider);
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -25,6 +30,38 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // ── Tombol Toggle Mode Terang/Gelap di Kiri Atas ──
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppAuthColors.iconBg(context),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppAuthColors.containerBorder(context),
+                        ),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          isDarkMode
+                              ? Icons.dark_mode_rounded
+                              : Icons.light_mode_rounded,
+                          color: isDarkMode
+                              ? const Color(0xFF60A5FA)
+                              : Colors.amber,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          ref.read(themeModeProvider.notifier).toggle();
+                        },
+                        tooltip: 'Ganti Tema',
+                      ),
+                    ),
+                  ),
+                ),
+
                 // Logo Aplikasi
                 const SleepWiseLogo(size: 76),
                 const SizedBox(height: 20),
@@ -33,12 +70,12 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       'SleepWise',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppAuthColors.textMain(context),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -48,9 +85,15 @@ class _LoginPageState extends State<LoginPage> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F293A),
+                        color: isDarkMode
+                            ? const Color(0xFF0F293A)
+                            : const Color(0xFFE0F2FE),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF1E4C5B)),
+                        border: Border.all(
+                          color: isDarkMode
+                              ? const Color(0xFF1E4C5B)
+                              : const Color(0xFFBAE6FD),
+                        ),
                       ),
                       child: const Row(
                         children: [
@@ -75,12 +118,12 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 10),
 
-                const Text(
+                Text(
                   'Selamat Datang Kembali',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppAuthColors.textMain(context),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -90,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey[400],
+                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                     height: 1.4,
                   ),
                 ),
@@ -100,40 +143,42 @@ class _LoginPageState extends State<LoginPage> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF111726),
+                    color: AppAuthColors.containerBg(context),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF1E293B)),
+                    border: Border.all(
+                      color: AppAuthColors.containerBorder(context),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Label Email
-                      _buildInputLabel('Email / Akun Kampus'),
+                      _buildInputLabel('Email / Akun Kampus', context),
                       const SizedBox(height: 8),
                       TextField(
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppAuthColors.textMain(context),
                           fontSize: 14,
                         ),
                         decoration: _buildInputDecoration(
                           hintText: 'nama@kampus.ac.id atau email',
                           prefixIcon: Icons.alternate_email_rounded,
+                          context: context,
                         ),
                       ),
                       const SizedBox(height: 18),
 
-                      // Label Password
-                      _buildInputLabel('Kata Sandi'),
+                      _buildInputLabel('Kata Sandi', context),
                       const SizedBox(height: 8),
                       TextField(
                         obscureText: _isObscure,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppAuthColors.textMain(context),
                           fontSize: 14,
                         ),
                         decoration: _buildInputDecoration(
                           hintText: '••••••••••••',
                           prefixIcon: Icons.lock_outline_rounded,
+                          context: context,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _isObscure
@@ -174,7 +219,9 @@ class _LoginPageState extends State<LoginPage> {
                               Text(
                                 'Ingat saya',
                                 style: TextStyle(
-                                  color: Colors.grey[300],
+                                  color: isDarkMode
+                                      ? Colors.grey[300]
+                                      : Colors.grey[700],
                                   fontSize: 13,
                                 ),
                               ),
@@ -231,70 +278,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
-
-                      // Divider ATAU
-                      Row(
-                        children: [
-                          Expanded(child: Divider(color: Colors.grey[800])),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0,
-                            ),
-                            child: Text(
-                              'ATAU MASUK DENGAN',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[500],
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ),
-                          Expanded(child: Divider(color: Colors.grey[800])),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Tombol Google
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: const Color(0xFF182032),
-                            side: const BorderSide(color: Color(0xFF26334D)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.network(
-                                'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
-                                height: 18,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(
-                                      Icons.g_mobiledata_rounded,
-                                      color: Colors.red,
-                                      size: 24,
-                                    ),
-                              ),
-                              const SizedBox(width: 10),
-                              const Text(
-                                'Lanjutkan dengan Google',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -306,16 +289,19 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     Text(
                       'Belum punya akun? ',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 14,
+                      ),
                     ),
                     GestureDetector(
                       onTap: () {
                         Navigator.pushNamed(context, '/register');
                       },
-                      child: const Text(
+                      child: Text(
                         'Daftar Sekarang',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppAuthColors.textMain(context),
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -331,12 +317,12 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildInputLabel(String title) {
+  Widget _buildInputLabel(String title, BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 13,
-        color: Color(0xFFE2E8F0),
+        color: AppAuthColors.textMain(context),
         fontWeight: FontWeight.w500,
       ),
     );
@@ -346,20 +332,21 @@ class _LoginPageState extends State<LoginPage> {
     String? hintText,
     IconData? prefixIcon,
     Widget? suffixIcon,
+    required BuildContext context,
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: TextStyle(color: Colors.grey[600], fontSize: 13),
+      hintStyle: TextStyle(color: Colors.grey[500], fontSize: 13),
       prefixIcon: prefixIcon != null
           ? Icon(prefixIcon, color: Colors.grey[500], size: 20)
           : null,
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: const Color(0xFF161D2F),
+      fillColor: AppAuthColors.inputFill(context),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF232D42)),
+        borderSide: BorderSide(color: AppAuthColors.inputBorder(context)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

@@ -9,13 +9,14 @@ class SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       padding: padding ?? const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppTheme.cardBorder, width: 0.5),
       ),
       child: child,
     );
@@ -38,6 +39,8 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Container(
@@ -46,7 +49,7 @@ class SectionHeader extends StatelessWidget {
             color: AppTheme.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(AppTheme.radiusSm),
           ),
-          child: Icon(icon, color: AppTheme.primaryLight, size: 20),
+          child: Icon(icon, color: colors.primary, size: 20),
         ),
         const SizedBox(width: AppTheme.spacingMd),
         Expanded(
@@ -55,8 +58,8 @@ class SectionHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                style: TextStyle(
+                  color: colors.onSurface,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
@@ -64,7 +67,7 @@ class SectionHeader extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
               ),
             ],
           ),

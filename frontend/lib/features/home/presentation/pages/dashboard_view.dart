@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/theme/theme_provider.dart';
 
-// Warna utama dipusatkan di sini agar tampilan dashboard mudah disesuaikan.
-const _background = Color(0xFF0A1022);
-const _surface = Color(0xFF192238);
-const _surfaceDark = Color(0xFF10192D);
-const _textPrimary = Color(0xFFE0E6FF);
-const _textSecondary = Color(0xFFB5BDD2);
 const _mint = Color(0xFF43DFAE);
 const _orange = Color(0xFFFFB34D);
+
+Color _surfaceColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+    ? const Color(0xFF192238)
+    : Theme.of(context).colorScheme.surface;
+
+Color _surfaceDarkColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+    ? const Color(0xFF10192D)
+    : const Color(0xFFF1F5F9);
 
 // Halaman utama menyimpan tab yang dipilih dan menyusun konten yang bisa digulir.
 class DashboardView extends StatefulWidget {
@@ -30,7 +36,6 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -74,6 +79,8 @@ class _DashboardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -81,18 +88,18 @@ class _DashboardContent extends StatelessWidget {
         const SizedBox(height: 18),
         Text(
           _formattedToday(),
-          style: const TextStyle(
-            color: Color(0xFFB4BCEB),
+          style: TextStyle(
+            color: colors.onSurfaceVariant,
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.1,
           ),
         ),
         const SizedBox(height: 10),
-        const Text(
+        Text(
           'Selamat Pagi, Sarah! ✨',
           style: TextStyle(
-            color: _textPrimary,
+            color: colors.onSurface,
             fontSize: 29,
             height: 1.1,
             fontWeight: FontWeight.w700,
@@ -100,9 +107,9 @@ class _DashboardContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Kualitas istirahatmu tadi malam tergolong prima.',
-          style: TextStyle(color: _textSecondary, fontSize: 13),
+          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
         ),
         const SizedBox(height: 22),
         const _SleepSummaryCard(),
@@ -120,11 +127,14 @@ class _DashboardContent extends StatelessWidget {
 }
 
 // Header menampilkan identitas aplikasi dan avatar pengguna.
-class _DashboardHeader extends StatelessWidget {
+class _DashboardHeader extends ConsumerWidget {
   const _DashboardHeader();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    final isDarkMode = colors.brightness == Brightness.dark;
+
     return Row(
       children: [
         Container(
@@ -137,14 +147,14 @@ class _DashboardHeader extends StatelessWidget {
           child: const Icon(Icons.nights_stay_rounded, color: _mint, size: 21),
         ),
         const SizedBox(width: 10),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'SleepWise',
                 style: TextStyle(
-                  color: _textPrimary,
+                  color: colors.onSurface,
                   fontSize: 18,
                   height: 1.05,
                   fontWeight: FontWeight.w700,
@@ -153,9 +163,19 @@ class _DashboardHeader extends StatelessWidget {
               SizedBox(height: 3),
               Text(
                 'Dashboard',
-                style: TextStyle(color: _textSecondary, fontSize: 11),
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
               ),
             ],
+          ),
+        ),
+        IconButton(
+          tooltip: 'Ganti Tema',
+          onPressed: () {
+            ref.read(themeModeProvider.notifier).toggle();
+          },
+          icon: Icon(
+            isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+            color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
           ),
         ),
         Container(
@@ -163,14 +183,14 @@ class _DashboardHeader extends StatelessWidget {
           height: 42,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF333D58), width: 2),
+            border: Border.all(color: colors.outline, width: 2),
             gradient: const LinearGradient(
               colors: [Color(0xFFF5D4B3), Color(0xFF8CA2BC)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
-          child: const Icon(Icons.person_rounded, color: _background, size: 25),
+          child: Icon(Icons.person_rounded, color: colors.onSurface, size: 25),
         ),
       ],
     );
@@ -183,13 +203,18 @@ class _SleepSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDarkMode = colors.brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(40),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1D293E), Color(0xFF202844), Color(0xFF141D30)],
+        gradient: LinearGradient(
+          colors: isDarkMode
+              ? const [Color(0xFF1D293E), Color(0xFF202844), Color(0xFF141D30)]
+              : [colors.surface, const Color(0xFFEFF4FF), colors.surface],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -200,17 +225,17 @@ class _SleepSummaryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF17433F),
+              color: _mint.withValues(alpha: isDarkMode ? 0.2 : 0.12),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.verified_rounded, color: _mint, size: 15),
-                SizedBox(width: 6),
+                const Icon(Icons.verified_rounded, color: _mint, size: 15),
+                const SizedBox(width: 6),
                 Text(
                   'Good Sleep (Kualitas Baik)',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: _mint,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -220,18 +245,18 @@ class _SleepSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Durasi Evaluasi Tidur',
-            style: TextStyle(color: _textSecondary, fontSize: 12),
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
           ),
           const SizedBox(height: 5),
-          const Row(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 '7.5',
                 style: TextStyle(
-                  color: _textPrimary,
+                  color: colors.onSurface,
                   fontSize: 34,
                   height: 1,
                   fontWeight: FontWeight.w700,
@@ -243,18 +268,21 @@ class _SleepSummaryCard extends StatelessWidget {
                 child: Text(
                   'Jam',
                   style: TextStyle(
-                    color: Color(0xFFBBC5FF),
+                    color: colors.onSurfaceVariant,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               Spacer(),
-              _CompactTag(icon: Icons.nightlight_outlined, label: 'Tadi malam'),
+              const _CompactTag(
+                icon: Icons.nightlight_outlined,
+                label: 'Tadi malam',
+              ),
             ],
           ),
           const SizedBox(height: 20),
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: _SleepMetric(
@@ -299,10 +327,12 @@ class _CompactTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xFF273149),
+        color: _surfaceDarkColor(context),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
@@ -312,7 +342,7 @@ class _CompactTag extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             label,
-            style: const TextStyle(color: _textSecondary, fontSize: 10),
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 10),
           ),
         ],
       ),
@@ -336,17 +366,19 @@ class _SleepMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 3),
-      color: _surfaceDark,
+      color: _surfaceDarkColor(context),
       child: Column(
         children: [
           Icon(icon, color: iconColor, size: 18),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              color: _textPrimary,
+            style: TextStyle(
+              color: colors.onSurface,
               fontSize: 18,
               height: 1,
               fontWeight: FontWeight.w700,
@@ -356,7 +388,7 @@ class _SleepMetric extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: _textSecondary, fontSize: 9),
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 9),
           ),
         ],
       ),
@@ -396,7 +428,11 @@ class _PredictionBanner extends StatelessWidget {
               color: Color(0x33777BF0),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.auto_awesome, color: _background, size: 25),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: Color(0xFF171E67),
+              size: 25,
+            ),
           ),
           const SizedBox(width: 12),
           const Expanded(
@@ -450,15 +486,17 @@ class _StatisticsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
                 'Ringkasan Statistik',
                 style: TextStyle(
-                  color: _textPrimary,
+                  color: colors.onSurface,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -467,7 +505,7 @@ class _StatisticsSection extends StatelessWidget {
             TextButton(
               onPressed: () {},
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFCBD1FF),
+                foregroundColor: colors.primary,
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(0, 32),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -480,13 +518,13 @@ class _StatisticsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        const Row(
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
                 children: [
-                  _StatCard(
+                  const _StatCard(
                     title: 'Rata-rata Durasi',
                     icon: Icons.schedule_rounded,
                     iconColor: Color(0xFFB8C3FF),
@@ -495,8 +533,8 @@ class _StatisticsSection extends StatelessWidget {
                     footer: '↗ +0.4j minggu ini',
                     footerColor: _mint,
                   ),
-                  SizedBox(height: 12),
-                  _StatCard(
+                  const SizedBox(height: 12),
+                  const _StatCard(
                     title: 'Rerata Stres',
                     icon: Icons.monitor_heart_rounded,
                     iconColor: _orange,
@@ -509,7 +547,7 @@ class _StatisticsSection extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 children: [
@@ -520,10 +558,10 @@ class _StatisticsSection extends StatelessWidget {
                     value: '28',
                     unit: 'Sesi',
                     footer: '✓ Akurasi tinggi',
-                    footerColor: _textSecondary,
+                    footerColor: colors.onSurfaceVariant,
                   ),
-                  SizedBox(height: 12),
-                  _DistributionCard(),
+                  const SizedBox(height: 12),
+                  const _DistributionCard(),
                 ],
               ),
             ),
@@ -558,12 +596,14 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 110),
       padding: const EdgeInsets.fromLTRB(15, 14, 12, 13),
       decoration: BoxDecoration(
-        color: _surface,
+        color: _surfaceColor(context),
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
@@ -576,7 +616,10 @@ class _StatCard extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: _textSecondary, fontSize: 11),
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
                 ),
               ),
               Icon(icon, color: iconColor, size: 18),
@@ -588,8 +631,8 @@ class _StatCard extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: const TextStyle(
-                  color: _textPrimary,
+                style: TextStyle(
+                  color: colors.onSurface,
                   fontSize: 28,
                   height: 1,
                   fontWeight: FontWeight.w700,
@@ -600,7 +643,10 @@ class _StatCard extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Text(
                   unit,
-                  style: const TextStyle(color: _textSecondary, fontSize: 12),
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
@@ -610,7 +656,7 @@ class _StatCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFF164139),
+                color: _mint.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -645,26 +691,35 @@ class _DistributionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 110),
       padding: const EdgeInsets.fromLTRB(15, 14, 12, 12),
       decoration: BoxDecoration(
-        color: _surface,
+        color: _surfaceColor(context),
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: Text(
                   'Distribusi',
-                  style: TextStyle(color: _textSecondary, fontSize: 11),
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
                 ),
               ),
-              Icon(Icons.donut_large_rounded, color: _textPrimary, size: 18),
+              Icon(
+                Icons.donut_large_rounded,
+                color: colors.onSurface,
+                size: 18,
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -691,10 +746,10 @@ class _DistributionCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text.rich(
+          Text.rich(
             TextSpan(
               style: TextStyle(
-                color: _textSecondary,
+                color: colors.onSurfaceVariant,
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
               ),
@@ -724,10 +779,12 @@ class _RoutineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _surface,
+        color: _surfaceColor(context),
         borderRadius: BorderRadius.circular(36),
       ),
       child: Row(
@@ -754,7 +811,7 @@ class _RoutineCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -773,7 +830,7 @@ class _RoutineCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: _textPrimary,
+                    color: colors.onSurface,
                     fontSize: 17,
                     height: 1.1,
                     fontWeight: FontWeight.w600,
@@ -785,7 +842,7 @@ class _RoutineCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: _textSecondary,
+                    color: colors.onSurfaceVariant,
                     fontSize: 12,
                     height: 1.35,
                   ),
@@ -805,10 +862,12 @@ class _DailyTipCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
       decoration: BoxDecoration(
-        color: const Color(0xFF1D273D),
+        color: _surfaceColor(context),
         borderRadius: BorderRadius.circular(38),
       ),
       child: Row(
@@ -817,8 +876,8 @@ class _DailyTipCard extends StatelessWidget {
           Container(
             width: 38,
             height: 38,
-            decoration: const BoxDecoration(
-              color: Color(0xFF3D3C43),
+            decoration: BoxDecoration(
+              color: _orange.withValues(alpha: 0.14),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -828,7 +887,7 @@ class _DailyTipCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -845,7 +904,10 @@ class _DailyTipCard extends StatelessWidget {
                     SizedBox(width: 7),
                     Text(
                       '• Rekomendasi ML',
-                      style: TextStyle(color: _textSecondary, fontSize: 9),
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 9,
+                      ),
                     ),
                   ],
                 ),
@@ -853,7 +915,7 @@ class _DailyTipCard extends StatelessWidget {
                 Text(
                   'Hindari kafein setelah pukul 15.00 WIB untuk menjaga fase Deep Sleep optimal malam nanti.',
                   style: TextStyle(
-                    color: _textPrimary,
+                    color: colors.onSurface,
                     fontSize: 13,
                     height: 1.65,
                   ),
@@ -886,10 +948,12 @@ class _BottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF0D1427),
-        border: Border(top: BorderSide(color: Color(0xFF202A40), width: 0.7)),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(top: BorderSide(color: colors.outline, width: 0.7)),
       ),
       child: SafeArea(
         top: false,
@@ -915,15 +979,15 @@ class _BottomNavigation extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF29314F)
+                                  ? colors.primary.withValues(alpha: 0.16)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(18),
                             ),
                             child: Icon(
                               item.icon,
                               color: isSelected
-                                  ? const Color(0xFFD2D6FF)
-                                  : _textSecondary,
+                                  ? colors.primary
+                                  : colors.onSurfaceVariant,
                               size: 20,
                             ),
                           ),
@@ -932,8 +996,8 @@ class _BottomNavigation extends StatelessWidget {
                             item.label,
                             style: TextStyle(
                               color: isSelected
-                                  ? const Color(0xFFD2D6FF)
-                                  : _textSecondary,
+                                  ? colors.primary
+                                  : colors.onSurfaceVariant,
                               fontSize: 10,
                               fontWeight: isSelected
                                   ? FontWeight.w600

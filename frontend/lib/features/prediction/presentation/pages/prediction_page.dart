@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/features/prediction/data/repositories/local_prediction_repository.dart';
 import 'package:frontend/features/prediction/domain/entities/prediction_input.dart';
 import 'package:frontend/features/prediction/domain/usecases/predict_sleep_quality.dart';
@@ -11,14 +13,14 @@ import 'package:frontend/features/prediction/presentation/widgets/kafein_widget.
 import 'package:frontend/features/prediction/presentation/widgets/layar_malam_widget.dart';
 import 'package:frontend/features/prediction/presentation/widgets/tingkat_stres_widget.dart';
 
-class PredictionPage extends StatefulWidget {
+class PredictionPage extends ConsumerStatefulWidget {
   const PredictionPage({super.key});
 
   @override
-  State<PredictionPage> createState() => _PredictionPageState();
+  ConsumerState<PredictionPage> createState() => _PredictionPageState();
 }
 
-class _PredictionPageState extends State<PredictionPage>
+class _PredictionPageState extends ConsumerState<PredictionPage>
     with SingleTickerProviderStateMixin {
   final _predictSleepQuality = PredictSleepQuality(LocalPredictionRepository());
 
@@ -50,13 +52,14 @@ class _PredictionPageState extends State<PredictionPage>
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeModeProvider);
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // ── App Bar ──
-            SliverToBoxAdapter(child: _buildHeader()),
+            SliverToBoxAdapter(child: _buildHeader(isDarkMode)),
             // ── Content ──
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -121,7 +124,9 @@ class _PredictionPageState extends State<PredictionPage>
   }
 
   // ── Header ──
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isDarkMode) {
+    final colors = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Row(
@@ -146,22 +151,37 @@ class _PredictionPageState extends State<PredictionPage>
             ),
           ),
           const SizedBox(width: 12),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'SleepWise',
-                style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'SleepWise',
+                  style: TextStyle(
+                    color: colors.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                'Prediksi Kualitas',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-              ),
-            ],
+                Text(
+                  'Prediksi Kualitas',
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Ganti Tema',
+            onPressed: () {
+              ref.read(themeModeProvider.notifier).toggle();
+            },
+            icon: Icon(
+              isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+              color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
+            ),
           ),
         ],
       ),
@@ -170,22 +190,24 @@ class _PredictionPageState extends State<PredictionPage>
 
   // ── Info Banner ──
   Widget _buildInfoBanner() {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: AppTheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.auto_awesome, color: AppTheme.accentOrange, size: 16),
           const SizedBox(width: 6),
-          const Text(
+          Text(
             'Didukung Random Forest & Decision Tree',
             style: TextStyle(
-              color: AppTheme.textSecondary,
+              color: colors.onSurfaceVariant,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -197,6 +219,8 @@ class _PredictionPageState extends State<PredictionPage>
 
   // ── Title Section ──
   Widget _buildTitleSection() {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -204,10 +228,10 @@ class _PredictionPageState extends State<PredictionPage>
           shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(
             Rect.fromLTWH(0, 0, bounds.width, bounds.height),
           ),
-          child: const Text(
+          child: Text(
             'Prediksi Kualitas Tidur',
             style: TextStyle(
-              color: Colors.white,
+              color: colors.onSurface,
               fontSize: 24,
               fontWeight: FontWeight.bold,
               height: 1.2,
@@ -215,10 +239,10 @@ class _PredictionPageState extends State<PredictionPage>
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Masukkan metrik harian untuk kalkukasi biomarker istirahat & pemulihan saraf Anda malam ini.',
           style: TextStyle(
-            color: AppTheme.textSecondary,
+            color: colors.onSurfaceVariant,
             fontSize: 13,
             height: 1.5,
           ),
@@ -258,6 +282,8 @@ class _PredictionPageState extends State<PredictionPage>
     required String sublabel,
     required Color color,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -283,10 +309,7 @@ class _PredictionPageState extends State<PredictionPage>
                 ),
                 Text(
                   sublabel,
-                  style: const TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 9,
-                  ),
+                  style: TextStyle(color: colors.onSurfaceVariant, fontSize: 9),
                 ),
               ],
             ),
@@ -298,10 +321,12 @@ class _PredictionPageState extends State<PredictionPage>
 
   // ── Bio-Feedback Preview ──
   Widget _buildBioFeedbackPreview() {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
       ),
@@ -314,7 +339,7 @@ class _PredictionPageState extends State<PredictionPage>
               color: AppTheme.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
             ),
-            child: const Text(
+            child: Text(
               'BIO-FEEDBACK PREVIEW',
               style: TextStyle(
                 color: AppTheme.primaryLight,
@@ -325,19 +350,19 @@ class _PredictionPageState extends State<PredictionPage>
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Data Siap Dikomputasi',
             style: TextStyle(
-              color: AppTheme.textPrimary,
+              color: colors.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Model akan memetakan risiko sleep fragmentation.',
             style: TextStyle(
-              color: AppTheme.textSecondary,
+              color: colors.onSurfaceVariant,
               fontSize: 12,
               height: 1.4,
             ),

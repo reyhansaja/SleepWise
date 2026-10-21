@@ -6,10 +6,13 @@ class MetricSummaryCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Expanded(
           child: _buildMetricCard(
+            context: context,
             icon: Icons.nightlight_round,
             iconColor: AppTheme.primaryLight,
             title: 'Rata Dur...',
@@ -39,16 +42,17 @@ class MetricSummaryCards extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _buildMetricCard(
+            context: context,
             icon: Icons.spa_rounded,
             iconColor: AppTheme.secondary,
             title: 'Skor Stres',
             valueText: '3.2',
             unitText: ' /10',
             valueColor: AppTheme.accent,
-            footer: const Text(
+            footer: Text(
               'Rendah / Rileks',
               style: TextStyle(
-                color: AppTheme.textSecondary,
+                color: colors.onSurfaceVariant,
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
               ),
@@ -60,6 +64,7 @@ class MetricSummaryCards extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _buildMetricCard(
+            context: context,
             icon: Icons.show_chart_rounded,
             iconColor: AppTheme.accentOrange,
             title: 'Prediksi ...',
@@ -92,6 +97,7 @@ class MetricSummaryCards extends StatelessWidget {
   }
 
   Widget _buildMetricCard({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String title,
@@ -100,12 +106,13 @@ class MetricSummaryCards extends StatelessWidget {
     Color? valueColor,
     required Widget footer,
   }) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppTheme.cardBorder, width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,8 +124,8 @@ class MetricSummaryCards extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
@@ -135,15 +142,15 @@ class MetricSummaryCards extends StatelessWidget {
                 TextSpan(
                   text: valueText,
                   style: TextStyle(
-                    color: valueColor ?? AppTheme.textPrimary,
+                    color: valueColor ?? colors.onSurface,
                     fontSize: 19,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 TextSpan(
                   text: unitText,
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),

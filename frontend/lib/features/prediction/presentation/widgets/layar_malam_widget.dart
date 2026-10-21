@@ -14,6 +14,8 @@ class LayarMalamWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,13 +24,13 @@ class LayarMalamWidget extends StatelessWidget {
             icon: Icons.phone_android_rounded,
             title: 'Layar Malam',
             subtitle: 'Sebelum merebahkan diri',
-            trailing: _buildValueBadge(),
+            trailing: _buildValueBadge(context),
           ),
           const SizedBox(height: AppTheme.spacingLg),
           SliderTheme(
             data: SliderThemeData(
               activeTrackColor: AppTheme.accentBlue,
-              inactiveTrackColor: AppTheme.surfaceBorder,
+              inactiveTrackColor: colors.outlineVariant,
               thumbColor: AppTheme.accentBlue,
               thumbShape: const RoundSliderThumbShape(
                 enabledThumbRadius: 10,
@@ -45,16 +47,22 @@ class LayarMalamWidget extends StatelessWidget {
               onChanged: onChanged,
             ),
           ),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 '0 mnt',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                style: TextStyle(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 11,
+                ),
               ),
               Text(
                 '180 mnt',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                style: TextStyle(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 11,
+                ),
               ),
             ],
           ),
@@ -63,7 +71,9 @@ class LayarMalamWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildValueBadge() {
+  Widget _buildValueBadge(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -76,15 +86,18 @@ class LayarMalamWidget extends StatelessWidget {
           children: [
             TextSpan(
               text: '${value.toInt()}',
-              style: const TextStyle(
-                color: AppTheme.accentBlue,
+              style: TextStyle(
+                color: colors.primary,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const TextSpan(
+            TextSpan(
               text: ' mnt',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+              style: TextStyle(
+                color: colors.onSurfaceVariant,
+                fontSize: 12,
+              ),
             ),
           ],
         ),

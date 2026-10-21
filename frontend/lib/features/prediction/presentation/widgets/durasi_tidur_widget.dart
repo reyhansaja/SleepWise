@@ -22,18 +22,20 @@ class DurasiTidurWidget extends StatelessWidget {
             icon: Icons.bedtime_rounded,
             title: 'Durasi Tidur',
             subtitle: 'Rencana istirahat semalam',
-            trailing: _buildValueBadge(),
+            trailing: _buildValueBadge(context),
           ),
           const SizedBox(height: AppTheme.spacingLg),
-          _buildSlider(),
+          _buildSlider(context),
           const SizedBox(height: AppTheme.spacingSm),
-          _buildLabels(),
+          _buildLabels(context),
         ],
       ),
     );
   }
 
-  Widget _buildValueBadge() {
+  Widget _buildValueBadge(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -46,15 +48,18 @@ class DurasiTidurWidget extends StatelessWidget {
           children: [
             TextSpan(
               text: value.toStringAsFixed(1),
-              style: const TextStyle(
-                color: AppTheme.primaryLight,
+              style: TextStyle(
+                color: colors.primary,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const TextSpan(
+            TextSpan(
               text: ' Jam',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+              style: TextStyle(
+                color: colors.onSurfaceVariant,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -62,7 +67,9 @@ class DurasiTidurWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSlider() {
+  Widget _buildSlider(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Stack(
@@ -72,7 +79,7 @@ class DurasiTidurWidget extends StatelessWidget {
             Container(
               height: 6,
               decoration: BoxDecoration(
-                color: AppTheme.surfaceBorder,
+                color: colors.outlineVariant,
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
@@ -147,7 +154,7 @@ class DurasiTidurWidget extends StatelessWidget {
               color: AppTheme.accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
             ),
-            child: const Text(
+            child: Text(
               '🟢 Zona Ideal: 7 - 8 Jam',
               style: TextStyle(
                 color: AppTheme.accent,
@@ -161,17 +168,19 @@ class DurasiTidurWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildLabels() {
-    return const Row(
+  Widget _buildLabels(BuildContext context) {
+    final labelColor = Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           '3 Jam',
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+          style: TextStyle(color: labelColor, fontSize: 11),
         ),
         Text(
           '12 Jam',
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+          style: TextStyle(color: labelColor, fontSize: 11),
         ),
       ],
     );

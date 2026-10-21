@@ -26,6 +26,8 @@ class DetakJantungWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,11 +53,11 @@ class DetakJantungWidget extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'Detak Jantung Istirahat',
                             style: TextStyle(
-                              color: AppTheme.textPrimary,
+                              color: colors.onSurface,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
@@ -84,9 +86,12 @@ class DetakJantungWidget extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    const Text(
+                    Text(
                       'Resting Heart Rate (RHR)',
-                      style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -105,17 +110,17 @@ class DetakJantungWidget extends StatelessWidget {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface,
+                  color: colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  border: Border.all(color: AppTheme.surfaceBorder),
+                  border: Border.all(color: colors.outlineVariant),
                 ),
                 child: TextField(
                   controller: TextEditingController(text: '$value'),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
@@ -131,11 +136,14 @@ class DetakJantungWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppTheme.spacingMd),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(bottom: 12),
                 child: Text(
                   'bpm',
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
                 ),
               ),
               const Spacer(),
