@@ -21,6 +21,8 @@ lib/
 		theme/             # Warna, spacing, radius, dan ThemeData
 		widgets/           # Widget reusable lintas fitur
 	features/
+		landing/
+			presentation/   # Landing page awal dan pengantar aplikasi
 		auth/
 			presentation/   # Halaman login dan register
 		home/
