@@ -1,0 +1,102 @@
+{
+  "model_key": "decision_tree",
+  "model_name": "Decision Tree",
+  "selection_metric": "cv_f1_weighted",
+  "selection_rule": "dipilih manual dari halaman ML Training",
+  "pipeline_path": "C:\\code\\sleepwise\\SleepWise\\ml\\models\\selected_pipeline.joblib",
+  "classes": [
+    "Average",
+    "Good",
+    "Poor"
+  ],
+  "categorical_features": [
+    "Gender",
+    "Occupation",
+    "BMI Category",
+    "Sleep Disorder"
+  ],
+  "numerical_features": [
+    "Age",
+    "Sleep Duration",
+    "Physical Activity Level",
+    "Stress Level",
+    "Heart Rate",
+    "Daily Steps",
+    "Systolic_BP",
+    "Diastolic_BP"
+  ],
+  "all_feature_names": [
+    "Gender_Female",
+    "Gender_Male",
+    "Occupation_Accountant",
+    "Occupation_Doctor",
+    "Occupation_Engineer",
+    "Occupation_Lawyer",
+    "Occupation_Manager",
+    "Occupation_Nurse",
+    "Occupation_Sales Representative",
+    "Occupation_Salesperson",
+    "Occupation_Scientist",
+    "Occupation_Software Engineer",
+    "Occupation_Teacher",
+    "BMI Category_Normal",
+    "BMI Category_Obese",
+    "BMI Category_Overweight",
+    "Sleep Disorder_Insomnia",
+    "Sleep Disorder_None",
+    "Sleep Disorder_Sleep Apnea",
+    "Age",
+    "Sleep Duration",
+    "Physical Activity Level",
+    "Stress Level",
+    "Heart Rate",
+    "Daily Steps",
+    "Systolic_BP",
+    "Diastolic_BP"
+  ],
+  "cv": {
+    "folds": 3,
+    "accuracy_mean": 0.9564309764309765,
+    "accuracy_std": 0.02085433930624753,
+    "f1_weighted_mean": 0.9555385745515542,
+    "f1_weighted_std": 0.022440262555500034,
+    "f1_macro_mean": 0.8586848371760459
+  },
+  "test_metrics": {
+    "accuracy": 1.0,
+    "precision_weighted": 1.0,
+    "recall_weighted": 1.0,
+    "f1_weighted": 1.0,
+    "f1_macro": 1.0
+  },
+  "comparison": [
+    {
+      "model": "Random Forest",
+      "model_key": "random_forest",
+      "cv_f1_weighted": 0.9765831192982265,
+      "cv_f1_weighted_std": 0.005047168591092867,
+      "cv_accuracy": 0.9765656565656565,
+      "cv_f1_macro": 0.9332518207214071,
+      "test_accuracy": 1.0,
+      "test_precision_weighted": 1.0,
+      "test_recall_weighted": 1.0,
+      "test_f1_weighted": 1.0,
+      "test_f1_macro": 1.0
+    },
+    {
+      "model": "Decision Tree",
+      "model_key": "decision_tree",
+      "cv_f1_weighted": 0.9555385745515542,
+      "cv_f1_weighted_std": 0.022440262555500034,
+      "cv_accuracy": 0.9564309764309765,
+      "cv_f1_macro": 0.8586848371760459,
+      "test_accuracy": 1.0,
+      "test_precision_weighted": 1.0,
+      "test_recall_weighted": 1.0,
+      "test_f1_weighted": 1.0,
+      "test_f1_macro": 1.0
+    }
+  ],
+  "selected_at": "2026-10-28T03:13:02+00:00",
+  "source_run": "20261028031252-d4091b"
+}
