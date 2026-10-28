@@ -1,10 +1,10 @@
-# 🌙 SleepWise - Machine Learning Analytics Module
+# SleepWise - Machine Learning Analytics Module
 
 Proyek Machine Learning untuk klasifikasi dan prediksi kualitas tidur (*Circadian & Sleep Quality Analytics*), disesuaikan dengan antarmuka aplikasi mobile **SleepWise** (Flutter) serta arsitektur backend **Flask** dan frontend web **React**.
 
 ---
 
-## 📁 Struktur Repositori & Pemisahan Fitur
+## Struktur Repositori & Pemisahan Fitur
 
 Repositori ini telah dipisahkan secara modular per fitur agar mudah dikerjakan dan di-push ke GitHub sesuai branch fitur masing-masing:
 
@@ -48,7 +48,7 @@ sleepwise_ml/
 
 ---
 
-## 🌿 Panduan Branch Git (Sesuai Fitur)
+## Panduan Branch Git (Sesuai Fitur)
 
 Untuk mengunggah kode ke GitHub secara bertahap sesuai fitur tugas, ikuti alur branch berikut:
 
@@ -97,7 +97,7 @@ git push -u origin feature/04-backend-integration
 
 ---
 
-## 🚀 Cara Menjalankan Modul Secara Mandiri
+## Cara Menjalankan Modul Secara Mandiri
 
 ### 1. Instalasi Dependensi
 ```bash
