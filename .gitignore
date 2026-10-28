@@ -1,0 +1,22 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Environment backend
+backend/.env
+
+# Web training (React + Vite)
+web/node_modules/
+web/dist/
+
+# Artefak training & upload runtime
+backend/uploads/
+ml/models/runs/
+
+# Editor
+.vscode/
+.idea/
+.venv
