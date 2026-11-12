@@ -1,13 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/section_card.dart';
+import 'package:frontend/features/statistics/domain/entities/sleep_stats.dart';
 
 class SleepCorrelationCard extends StatelessWidget {
-  const SleepCorrelationCard({super.key});
+  const SleepCorrelationCard({super.key, required this.stats});
+
+  final SleepStats stats;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final factors = [
+      _Factor(
+        icon: Icons.sentiment_dissatisfied_rounded,
+        title: 'Tingkat Stres Harian',
+        value: stats.corrStress,
+        description:
+            'Korelasi negatif berarti stres lebih tinggi cenderung menurunkan skor kualitas tidur.',
+      ),
+      _Factor(
+        icon: Icons.favorite_border_rounded,
+        title: 'Detak Jantung Istirahat',
+        value: stats.corrHeartRate,
+        description:
+            'Detak jantung istirahat lebih tinggi umumnya menandakan tubuh kurang pulih.',
+      ),
+      _Factor(
+        icon: Icons.access_time_rounded,
+        title: 'Durasi Tidur',
+        value: stats.corrDuration,
+        description:
+            'Korelasi positif berarti durasi tidur lebih panjang cenderung menaikkan skor.',
+      ),
+    ];
 
     return SectionCard(
       child: Column(
@@ -30,7 +56,7 @@ class SleepCorrelationCard extends StatelessWidget {
                   ),
                   SizedBox(height: 3),
                   Text(
-                    'Random Forest Shapley Importance Values',
+                    'Korelasi Pearson terhadap skor • ${stats.total} prediksi',
                     style: TextStyle(
                       color: colors.onSurfaceVariant,
                       fontSize: 12,
@@ -58,43 +84,10 @@ class SleepCorrelationCard extends StatelessWidget {
           ),
           const SizedBox(height: AppTheme.spacingLg),
 
-          // Factor 1: Durasi Layar Malam
-          _buildFactorItem(
-            context: context,
-            icon: Icons.phone_android_rounded,
-            title: 'Durasi Layar Malam',
-            badgeText: '-42% (Korelasi Negatif Kuat)',
-            badgeColor: AppTheme.accentPink,
-            progress: 0.42,
-            description:
-                'Tiap >45 mnt screen-time menunda fase deep sleep ±26 menit.',
-          ),
-          const SizedBox(height: 18),
-
-          // Factor 2: Tingkat Stres Harian
-          _buildFactorItem(
-            context: context,
-            icon: Icons.sentiment_dissatisfied_rounded,
-            title: 'Tingkat Stres Harian',
-            badgeText: '-28% (Pengaruh Signifikan)',
-            badgeColor: AppTheme.accentOrange,
-            progress: 0.28,
-            description:
-                'Stres tinggi (>6/10) meningkatkan frekuensi terbangun spontan.',
-          ),
-          const SizedBox(height: 18),
-
-          // Factor 3: Aktivitas Fisik Sore
-          _buildFactorItem(
-            context: context,
-            icon: Icons.directions_run_rounded,
-            title: 'Aktivitas Fisik Sore',
-            badgeText: '+35% (Korelasi Positif Kuat)',
-            badgeColor: AppTheme.accent,
-            progress: 0.35,
-            description:
-                'Olahraga sedang (16.00-18.00) mempercepat onset kantuk alami.',
-          ),
+          for (var i = 0; i < factors.length; i++) ...[
+            if (i > 0) const SizedBox(height: 18),
+            _buildFactorItem(context: context, factor: factors[i]),
+          ],
         ],
       ),
     );
@@ -102,14 +95,17 @@ class SleepCorrelationCard extends StatelessWidget {
 
   Widget _buildFactorItem({
     required BuildContext context,
-    required IconData icon,
-    required String title,
-    required String badgeText,
-    required Color badgeColor,
-    required double progress,
-    required String description,
+    required _Factor factor,
   }) {
     final colors = Theme.of(context).colorScheme;
+    final strength = factor.value.abs();
+    final badgeColor = factor.value >= 0 ? AppTheme.accent : AppTheme.accentPink;
+    final direction = factor.value >= 0 ? '+' : '-';
+    final label = strength >= 0.5
+        ? 'Kuat'
+        : strength >= 0.3
+        ? 'Sedang'
+        : 'Lemah';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,10 +116,10 @@ class SleepCorrelationCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: colors.onSurface, size: 16),
+                Icon(factor.icon, color: colors.onSurface, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  title,
+                  factor.title,
                   style: TextStyle(
                     color: colors.onSurface,
                     fontSize: 13.5,
@@ -133,7 +129,7 @@ class SleepCorrelationCard extends StatelessWidget {
               ],
             ),
             Text(
-              badgeText,
+              '$direction${(strength * 100).round()}% ($label)',
               style: TextStyle(
                 color: badgeColor,
                 fontSize: 11,
@@ -154,7 +150,7 @@ class SleepCorrelationCard extends StatelessWidget {
           ),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
-            widthFactor: progress,
+            widthFactor: strength.clamp(0.0, 1.0),
             child: Container(
               decoration: BoxDecoration(
                 color: badgeColor,
@@ -173,7 +169,7 @@ class SleepCorrelationCard extends StatelessWidget {
 
         // Description
         Text(
-          description,
+          factor.description,
           style: TextStyle(
             color: colors.onSurfaceVariant,
             fontSize: 11,
@@ -183,4 +179,18 @@ class SleepCorrelationCard extends StatelessWidget {
       ],
     );
   }
+}
+
+class _Factor {
+  const _Factor({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.description,
+  });
+
+  final IconData icon;
+  final String title;
+  final double value;
+  final String description;
 }

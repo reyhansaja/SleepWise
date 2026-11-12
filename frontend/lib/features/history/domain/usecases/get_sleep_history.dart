@@ -6,5 +6,6 @@ class GetSleepHistory {
 
   const GetSleepHistory(this.repository);
 
-  List<SleepRecord> call() => repository.getRecords();
+  Future<List<SleepRecord>> call({String? token}) =>
+      repository.getRecords(token: token);
 }

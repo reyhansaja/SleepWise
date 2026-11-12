@@ -158,23 +158,40 @@ def create_prediction(data: dict, model_name: str | None = None) -> dict:
     }
 
 
+_LIST_SQL = """
+    SELECT p.*, u.full_name AS user_nama, u.email AS user_email
+    FROM predictions p
+    LEFT JOIN users u ON u.id = p.user_id
+"""
+
+
+def _serialize(row: dict) -> dict:
+    # MySQL DATETIME -> string ISO agar Flutter bisa parse (jsonify default = HTTP date).
+    created = row.get("created_at")
+    if created is not None and hasattr(created, "isoformat"):
+        row["created_at"] = created.isoformat(sep=" ")
+    return row
+
+
 def list_predictions(limit: int = 50, user_id: int | None = None) -> list[dict]:
     if user_id is None:
-        return db.query_all("SELECT * FROM predictions ORDER BY id DESC LIMIT %s", (limit,))
-    return db.query_all(
-        "SELECT * FROM predictions WHERE user_id = %s ORDER BY id DESC LIMIT %s", (user_id, limit)
-    )
+        rows = db.query_all(f"{_LIST_SQL} ORDER BY p.id DESC LIMIT %s", (limit,))
+    else:
+        rows = db.query_all(
+            f"{_LIST_SQL} WHERE p.user_id = %s ORDER BY p.id DESC LIMIT %s", (user_id, limit)
+        )
+    return [_serialize(row) for row in rows]
 
 
 def get_prediction(prediction_id: int):
-    row = db.query_one("SELECT * FROM predictions WHERE id = %s", (prediction_id,))
+    row = db.query_one(f"{_LIST_SQL} WHERE p.id = %s", (prediction_id,))
     if row is None:
         return None
     row["recommendations"] = db.query_all(
         "SELECT category, message FROM prediction_recommendations WHERE prediction_id = %s ORDER BY id",
         (prediction_id,),
     )
-    return row
+    return _serialize(row)
 
 
 def list_recommendations(prediction_id: int) -> list[dict]:

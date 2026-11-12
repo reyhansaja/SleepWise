@@ -2,13 +2,24 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/section_card.dart';
+import 'package:frontend/features/statistics/domain/entities/sleep_stats.dart';
 
 class SleepDistributionCard extends StatelessWidget {
-  const SleepDistributionCard({super.key});
+  const SleepDistributionCard({
+    super.key,
+    required this.stats,
+    required this.periodLabel,
+  });
+
+  final SleepStats stats;
+  final String periodLabel;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final good = _pct(stats.goodPercent);
+    final average = _pct(stats.averagePercent);
+    final poor = _pct(stats.poorPercent);
 
     return SectionCard(
       child: Column(
@@ -32,7 +43,7 @@ class SleepDistributionCard extends StatelessWidget {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      'Klasifikasi model Random Forest • 7 Hari',
+                      'Klasifikasi model ${stats.dominantModel} • $periodLabel',
                       style: TextStyle(
                         color: colors.onSurfaceVariant,
                         fontSize: 12,
@@ -55,7 +66,7 @@ class SleepDistributionCard extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  '70%\nOPTIMAL',
+                  '$good%\nOPTIMAL',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: colors.secondary,
@@ -82,9 +93,9 @@ class SleepDistributionCard extends StatelessWidget {
                     CustomPaint(
                       size: const Size(120, 120),
                       painter: _DonutChartPainter(
-                        goodPercent: 0.70,
-                        averagePercent: 0.22,
-                        poorPercent: 0.08,
+                        goodPercent: stats.goodPercent,
+                        averagePercent: stats.averagePercent,
+                        poorPercent: stats.poorPercent,
                       ),
                     ),
                     Column(
@@ -97,7 +108,7 @@ class SleepDistributionCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '70%',
+                          '$good%',
                           style: TextStyle(
                             color: colors.onSurface,
                             fontSize: 16,
@@ -129,7 +140,7 @@ class SleepDistributionCard extends StatelessWidget {
                       dotColor: AppTheme.accent,
                       title: 'Good (Optimal)',
                       subtitle: '> 7.0 Jam rest • Rendah bangun',
-                      percentage: '70%',
+                      percentage: '$good%',
                       percentageColor: AppTheme.accent,
                     ),
                     const SizedBox(height: 10),
@@ -138,7 +149,7 @@ class SleepDistributionCard extends StatelessWidget {
                       dotColor: AppTheme.accentOrange,
                       title: 'Average (Cukup)',
                       subtitle: '6.0 - 6.9 Jam • Sedang',
-                      percentage: '22%',
+                      percentage: '$average%',
                       percentageColor: AppTheme.accentOrange,
                     ),
                     const SizedBox(height: 10),
@@ -147,7 +158,7 @@ class SleepDistributionCard extends StatelessWidget {
                       dotColor: AppTheme.accentPink,
                       title: 'Poor (Kurang)',
                       subtitle: '< 6.0 Jam • Restless',
-                      percentage: '8%',
+                      percentage: '$poor%',
                       percentageColor: AppTheme.accentPink,
                     ),
                   ],
@@ -190,6 +201,8 @@ class SleepDistributionCard extends StatelessWidget {
       ),
     );
   }
+
+  static int _pct(double fraction) => (fraction * 100).round();
 
   Widget _buildLegendItem({
     required BuildContext context,
@@ -290,21 +303,21 @@ class _DonutChartPainter extends CustomPainter {
 
     double startAngle = -math.pi / 2; // Start from top
 
-    // Good Arc
-    double sweepGood = (2 * math.pi * goodPercent) - gapAngle;
-    canvas.drawArc(rect, startAngle, sweepGood, false, paintGood);
-    startAngle += sweepGood + gapAngle;
+    void drawArc(Paint paint, double percent) {
+      if (percent <= 0) return;
+      final sweep = math.max(0.02, (2 * math.pi * percent) - gapAngle);
+      canvas.drawArc(rect, startAngle, sweep, false, paint);
+      startAngle += sweep + gapAngle;
+    }
 
-    // Average Arc
-    double sweepAvg = (2 * math.pi * averagePercent) - gapAngle;
-    canvas.drawArc(rect, startAngle, sweepAvg, false, paintAvg);
-    startAngle += sweepAvg + gapAngle;
-
-    // Poor Arc
-    double sweepPoor = (2 * math.pi * poorPercent) - gapAngle;
-    canvas.drawArc(rect, startAngle, sweepPoor, false, paintPoor);
+    drawArc(paintGood, goodPercent);
+    drawArc(paintAvg, averagePercent);
+    drawArc(paintPoor, poorPercent);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _DonutChartPainter old) =>
+      old.goodPercent != goodPercent ||
+      old.averagePercent != averagePercent ||
+      old.poorPercent != poorPercent;
 }

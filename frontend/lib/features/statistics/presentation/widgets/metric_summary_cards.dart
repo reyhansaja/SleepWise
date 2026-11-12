@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/features/statistics/domain/entities/sleep_stats.dart';
 
 class MetricSummaryCards extends StatelessWidget {
-  const MetricSummaryCards({super.key});
+  const MetricSummaryCards({super.key, required this.stats});
+
+  final SleepStats stats;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final stress = stats.avgStress;
 
     return Row(
       children: [
@@ -16,7 +20,7 @@ class MetricSummaryCards extends StatelessWidget {
             icon: Icons.nightlight_round,
             iconColor: AppTheme.primaryLight,
             title: 'Rata Dur...',
-            valueText: '7.4',
+            valueText: stats.avgDuration.toStringAsFixed(1),
             unitText: ' Jam',
             footer: Row(
               mainAxisSize: MainAxisSize.min,
@@ -27,9 +31,9 @@ class MetricSummaryCards extends StatelessWidget {
                   size: 13,
                 ),
                 const SizedBox(width: 3),
-                const Text(
-                  '+12 mnt',
-                  style: TextStyle(
+                Text(
+                  '${stats.total} catatan',
+                  style: const TextStyle(
                     color: AppTheme.accent,
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -46,11 +50,11 @@ class MetricSummaryCards extends StatelessWidget {
             icon: Icons.spa_rounded,
             iconColor: AppTheme.secondary,
             title: 'Skor Stres',
-            valueText: '3.2',
+            valueText: stress.toStringAsFixed(1),
             unitText: ' /10',
             valueColor: AppTheme.accent,
             footer: Text(
-              'Rendah / Rileks',
+              _stressLabel(stress),
               style: TextStyle(
                 color: colors.onSurfaceVariant,
                 fontSize: 10,
@@ -68,7 +72,7 @@ class MetricSummaryCards extends StatelessWidget {
             icon: Icons.show_chart_rounded,
             iconColor: AppTheme.accentOrange,
             title: 'Prediksi ...',
-            valueText: '34',
+            valueText: '${stats.total}',
             unitText: ' Log',
             valueColor: AppTheme.accentOrange,
             footer: Row(
@@ -94,6 +98,12 @@ class MetricSummaryCards extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  static String _stressLabel(double value) {
+    if (value < 4) return 'Rendah / Rileks';
+    if (value < 7) return 'Sedang';
+    return 'Tinggi';
   }
 
   Widget _buildMetricCard({

@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:frontend/core/theme/theme_provider.dart';
-import 'package:frontend/features/history/data/repositories/local_history_repository.dart';
+import 'package:frontend/features/auth/data/auth_service.dart';
+import 'package:frontend/features/history/data/repositories/api_history_repository.dart';
 import 'package:frontend/features/history/domain/entities/sleep_record.dart';
-import 'package:frontend/features/history/domain/usecases/get_sleep_history.dart';
+
+/// Riwayat prediksi dari backend, di-filter per periode.
+final historyProvider = FutureProvider.autoDispose<List<SleepRecord>>((ref) {
+  final token = ref.watch(authSessionProvider)?.token;
+  return ref.watch(historyRepositoryProvider).getRecords(token: token);
+});
 
 class HistoryPage extends ConsumerStatefulWidget {
   const HistoryPage({super.key});
@@ -14,28 +20,21 @@ class HistoryPage extends ConsumerStatefulWidget {
 }
 
 class _HistoryPageState extends ConsumerState<HistoryPage> {
-  final _getSleepHistory = const GetSleepHistory(LocalHistoryRepository());
-  late final List<SleepRecord> _records;
   String _selectedFilter = 'Semua';
   String _searchQuery = '';
 
-  @override
-  void initState() {
-    super.initState();
-    _records = _getSleepHistory();
-  }
-
-  List<SleepRecord> get _visibleRecords {
-    return _records.where((record) {
+  List<SleepRecord> _visibleRecords(List<SleepRecord> records) {
+    return records.where((record) {
       final matchesFilter =
           _selectedFilter == 'Semua' ||
-          (_selectedFilter == 'Good Sleep' && record.quality == 'Good Sleep');
+          (_selectedFilter == 'Good Sleep' && record.quality == 'Good') ||
+          record.modelName == _selectedFilter;
       final query = _searchQuery.toLowerCase();
       final matchesSearch =
           query.isEmpty ||
           record.date.toLowerCase().contains(query) ||
-          record.note.toLowerCase().contains(query) ||
-          record.quality.toLowerCase().contains(query);
+          record.quality.toLowerCase().contains(query) ||
+          record.modelName.toLowerCase().contains(query);
       return matchesFilter && matchesSearch;
     }).toList();
   }
@@ -43,37 +42,73 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final recordsAsync = ref.watch(historyProvider);
 
     return Scaffold(
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildHeader(),
-                  const SizedBox(height: 16),
-                  _buildSummary(),
-                  const SizedBox(height: 16),
-                  _buildSearchField(),
-                  const SizedBox(height: 12),
-                  _buildFilters(),
-                  const SizedBox(height: 14),
-                  if (_visibleRecords.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Center(
-                        child: Text(
-                          'Tidak ada riwayat yang cocok.',
-                          style: TextStyle(color: colors.onSurfaceVariant),
-                        ),
-                      ),
-                    )
-                  else
-                    ..._visibleRecords.map(_buildRecordCard),
-                ]),
-              ),
+        child: recordsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => _buildError(colors, error),
+          data: (records) {
+            final visible = _visibleRecords(records);
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      _buildHeader(),
+                      const SizedBox(height: 16),
+                      _buildSummary(records),
+                      const SizedBox(height: 16),
+                      _buildSearchField(),
+                      const SizedBox(height: 12),
+                      _buildFilters(records),
+                      const SizedBox(height: 14),
+                      if (visible.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Center(
+                            child: Text(
+                              records.isEmpty
+                                  ? 'Belum ada riwayat prediksi.'
+                                  : 'Tidak ada riwayat yang cocok.',
+                              style: TextStyle(color: colors.onSurfaceVariant),
+                            ),
+                          ),
+                        )
+                      else
+                        ...visible.map(_buildRecordCard),
+                    ]),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildError(ColorScheme colors, Object error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cloud_off_rounded, color: colors.error, size: 40),
+            const SizedBox(height: 12),
+            Text(
+              '$error',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () => ref.invalidate(historyProvider),
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: const Text('Coba Lagi'),
             ),
           ],
         ),
@@ -156,8 +191,12 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     );
   }
 
-  Widget _buildSummary() {
+  Widget _buildSummary(List<SleepRecord> records) {
     final colors = Theme.of(context).colorScheme;
+    final total = records.length;
+    final avgScore = total == 0
+        ? 0
+        : (records.fold<int>(0, (sum, r) => sum + r.score) / total).round();
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -182,7 +221,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '34',
+                  '$total',
                   style: TextStyle(
                     color: colors.onSurface,
                     fontSize: 17,
@@ -199,7 +238,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Model terverifikasi •\nTerenkripsi diperangkat',
+                  'Model ML backend •\nData tersimpan di server',
                   style: TextStyle(
                     color: colors.onSurfaceVariant,
                     fontSize: 9,
@@ -216,7 +255,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               borderRadius: BorderRadius.circular(7),
             ),
             child: Text(
-              'Lokal\nSinkron',
+              'Server\nOnline',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colors.brightness == Brightness.dark
@@ -242,7 +281,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               ),
               SizedBox(height: 2),
               Text(
-                '92.4%',
+                '$avgScore%',
                 style: TextStyle(
                   color: colors.primary,
                   fontSize: 16,
@@ -285,9 +324,13 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(List<SleepRecord> records) {
     final colors = Theme.of(context).colorScheme;
-    const filters = ['Semua', 'Random Forest', 'Decision Tree', 'Good Sleep'];
+    final filters = <String>{
+      'Semua',
+      'Good Sleep',
+      for (final r in records) r.modelName,
+    }.toList();
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -363,7 +406,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     Icon(Icons.nightlight_round, size: 9, color: qualityColor),
                     const SizedBox(width: 3),
                     Text(
-                      record.quality,
+                      _qualityLabel(record.quality),
                       style: TextStyle(
                         color: qualityColor,
                         fontSize: 8,
@@ -379,14 +422,22 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _metric(Icons.access_time_rounded, record.duration, 'Durasi'),
-              _metric(Icons.star_border_rounded, record.score, 'Skor'),
               _metric(
-                Icons.bedtime_outlined,
-                '${record.awakenings} kcr',
-                'Terbangun',
+                Icons.access_time_rounded,
+                '${record.duration.toStringAsFixed(1)} h',
+                'Durasi',
               ),
-              _metric(Icons.favorite_border_rounded, record.heartRate, 'bpm'),
+              _metric(Icons.star_border_rounded, '${record.score}%', 'Skor'),
+              _metric(
+                Icons.psychology_outlined,
+                '${record.stressLevel}/10',
+                'Stres',
+              ),
+              _metric(
+                Icons.favorite_border_rounded,
+                '${record.heartRate}',
+                'bpm',
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -403,7 +454,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     const SizedBox(width: 5),
                     Flexible(
                       child: Text(
-                        record.note,
+                        '${record.userNama} • ${record.modelName}',
                         style: TextStyle(
                           color: qualityColor,
                           fontSize: 8,
@@ -433,6 +484,17 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         ],
       ),
     );
+  }
+
+  String _qualityLabel(String quality) {
+    switch (quality) {
+      case 'Good':
+        return 'Good Sleep';
+      case 'Average':
+        return 'Average Sleep';
+      default:
+        return 'Poor Sleep';
+    }
   }
 
   Widget _metric(IconData icon, String value, String label) {

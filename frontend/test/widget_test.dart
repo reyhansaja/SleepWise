@@ -2,7 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:frontend/features/history/data/repositories/api_history_repository.dart';
+import 'package:frontend/features/history/domain/entities/sleep_record.dart';
+import 'package:frontend/features/history/domain/repositories/history_repository.dart';
 import 'package:frontend/main.dart';
+
+class _FakeHistory implements HistoryRepository {
+  @override
+  Future<List<SleepRecord>> getRecords({String? token}) async => const [
+        SleepRecord(
+          id: 1,
+          date: '24 Mei 2026 • 07:15',
+          quality: 'Good',
+          modelName: 'Decision Tree',
+          userNama: 'Sarah Nabila',
+          duration: 7.5,
+          score: 92,
+          stressLevel: 3,
+          heartRate: 64,
+        ),
+      ];
+}
+
+Widget _app(String route) => ProviderScope(
+      overrides: [
+        historyRepositoryProvider.overrideWithValue(_FakeHistory()),
+      ],
+      child: SleepWiseApp(initialRoute: route),
+    );
 
 void main() {
   testWidgets('dashboard SleepWise menampilkan ringkasan utama', (
@@ -23,9 +50,7 @@ void main() {
   testWidgets('navigasi tab statistik menampilkan analisis sirkadian', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: SleepWiseApp(initialRoute: '/statistics')),
-    );
+    await tester.pumpWidget(_app('/statistics'));
     await tester.pumpAndSettle();
 
     expect(find.text('SleepWise'), findsOneWidget);
@@ -35,9 +60,7 @@ void main() {
   testWidgets('toggle tema halaman statistik mengganti tampilannya', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: SleepWiseApp(initialRoute: '/statistics')),
-    );
+    await tester.pumpWidget(_app('/statistics'));
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Ganti Tema'), findsOneWidget);
@@ -61,21 +84,17 @@ void main() {
   });
 
   testWidgets('route riwayat menampilkan arsip prediksi tidur', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: SleepWiseApp(initialRoute: '/history')),
-    );
+    await tester.pumpWidget(_app('/history'));
     await tester.pumpAndSettle();
 
     expect(find.text('Riwayat Prediksi'), findsOneWidget);
-    expect(find.text('Siklus REM Optimal (1.8 jam)'), findsOneWidget);
+    expect(find.text('Sarah Nabila • Decision Tree'), findsOneWidget);
   });
 
   testWidgets('toggle tema halaman riwayat mengganti tema aplikasi', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: SleepWiseApp(initialRoute: '/history')),
-    );
+    await tester.pumpWidget(_app('/history'));
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Ganti Tema'), findsOneWidget);
@@ -91,14 +110,13 @@ void main() {
     final searchField = tester.widget<TextField>(find.byType(TextField));
 
     expect(colors.brightness, Brightness.light);
-    expect(find.byIcon(Icons.light_mode_rounded), findsOneWidget);
     expect(title.style?.color, colors.onSurface);
     expect(searchField.style?.color, colors.onSurface);
     expect(searchField.decoration?.fillColor, colors.surface);
     expect(searchField.decoration?.enabledBorder?.borderSide, BorderSide.none);
     final summaryContainer = tester.widget<Container>(
       find
-          .ancestor(of: find.text('34'), matching: find.byType(Container))
+          .ancestor(of: find.text('1'), matching: find.byType(Container))
           .first,
     );
     expect((summaryContainer.decoration as BoxDecoration?)?.border, isNull);

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/features/statistics/domain/entities/sleep_stats.dart';
 
 class AiInsightCard extends StatelessWidget {
   final VoidCallback? onApplyHabit;
+  final SleepStats stats;
 
-  const AiInsightCard({super.key, this.onApplyHabit});
+  const AiInsightCard({super.key, this.onApplyHabit, required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +71,9 @@ class AiInsightCard extends StatelessWidget {
                 ],
               ),
               Text(
-                'Confidence 96.4%',
+                stats.total == 0
+                    ? 'Belum ada data'
+                    : 'Confidence ${stats.avgConfidence.toStringAsFixed(1)}%',
                 style: TextStyle(
                   color: colors.onSurfaceVariant,
                   fontSize: 10.5,
@@ -82,7 +86,7 @@ class AiInsightCard extends StatelessWidget {
 
           // Title
           Text(
-            'Optimalisasi Pola Digital Anda',
+            _title(),
             style: TextStyle(
               color: colors.onSurface,
               fontSize: 16,
@@ -93,7 +97,7 @@ class AiInsightCard extends StatelessWidget {
 
           // Quote body
           Text(
-            '“Pola tidur Anda paling stabil saat waktu layar dibatasi di bawah 30 menit sebelum istirahat. Mempertahankan rutinitas santai pukul 22:30 memprediksi efisiensi tidur 88%+ malam ini.”',
+            '“${_body()}”',
             style: TextStyle(
               color: colors.onSurfaceVariant,
               fontSize: 12.5,
@@ -172,5 +176,42 @@ class AiInsightCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _title() {
+    if (stats.total == 0) return 'Belum Cukup Data';
+    if (stats.goodPercent >= 0.6) return 'Pola Tidur Anda Cukup Baik';
+    if (stats.poorPercent >= 0.4) return 'Perlu Perbaikan Pola Tidur';
+    return 'Optimalisasi Pola Tidur Anda';
+  }
+
+  String _body() {
+    if (stats.total == 0) {
+      return 'Lakukan prediksi kualitas tidur terlebih dahulu agar SleepWise bisa '
+          'menganalisis tren dan memberikan kesimpulan.';
+    }
+    final durasi = stats.avgDuration.toStringAsFixed(1);
+    final stres = stats.avgStress.toStringAsFixed(1);
+    final baik = (stats.goodPercent * 100).round();
+
+    final buffer = StringBuffer()
+      ..write('Dari ${stats.total} prediksi, rata-rata durasi tidur Anda ')
+      ..write('$durasi jam dengan skor stres $stres/10. ')
+      ..write('$baik% prediksi tergolong kualitas baik. ');
+
+    if (stats.avgDuration < 7) {
+      buffer.write(
+        'Menambah durasi tidur mendekati 7-8 jam berpotensi meningkatkan skor.',
+      );
+    } else if (stats.avgStress >= 6) {
+      buffer.write(
+        'Skor stres cukup tinggi; kelola stres sebelum tidur untuk hasil lebih baik.',
+      );
+    } else {
+      buffer.write(
+        'Pertahankan rutinitas tidur yang konsisten untuk menjaga hasil ini.',
+      );
+    }
+    return buffer.toString();
   }
 }

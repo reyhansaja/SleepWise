@@ -1,72 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/section_card.dart';
-
-class DaySleepData {
-  final String dayName;
-  final String dayShort;
-  final double duration;
-  final bool isOptimal;
-  final bool isWarning;
-
-  const DaySleepData({
-    required this.dayName,
-    required this.dayShort,
-    required this.duration,
-    this.isOptimal = false,
-    this.isWarning = false,
-  });
-}
+import 'package:frontend/features/statistics/domain/entities/sleep_stats.dart';
 
 class WeeklyTrendChartCard extends StatefulWidget {
-  const WeeklyTrendChartCard({super.key});
+  const WeeklyTrendChartCard({super.key, required this.weekData});
+
+  final List<DaySleepData> weekData;
 
   @override
   State<WeeklyTrendChartCard> createState() => _WeeklyTrendChartCardState();
 }
 
 class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
-  int _selectedIndex = 6; // Default to Minggu (Sunday)
+  int? _selectedIndex;
 
-  final List<DaySleepData> _weekData = const [
-    DaySleepData(dayName: 'Senin', dayShort: 'Sen', duration: 6.8),
-    DaySleepData(
-      dayName: 'Selasa',
-      dayShort: 'Sel',
-      duration: 7.5,
-      isOptimal: true,
-    ),
-    DaySleepData(
-      dayName: 'Rabu',
-      dayShort: 'Rab',
-      duration: 5.5,
-      isWarning: true,
-    ),
-    DaySleepData(
-      dayName: 'Kamis',
-      dayShort: 'Kam',
-      duration: 7.2,
-      isOptimal: true,
-    ),
-    DaySleepData(dayName: 'Jumat', dayShort: 'Jum', duration: 6.5),
-    DaySleepData(
-      dayName: 'Sabtu',
-      dayShort: 'Sab',
-      duration: 8.2,
-      isOptimal: true,
-    ),
-    DaySleepData(
-      dayName: 'Minggu',
-      dayShort: 'Min',
-      duration: 7.8,
-      isOptimal: true,
-    ),
-  ];
+  List<DaySleepData> get _weekData => widget.weekData;
+
+  int get _effectiveIndex {
+    if (_weekData.isEmpty) return 0;
+    if (_selectedIndex != null && _selectedIndex! < _weekData.length) {
+      return _selectedIndex!;
+    }
+    // Default ke hari terakhir yang punya data.
+    final last = _weekData.lastIndexWhere((d) => d.duration > 0);
+    return last >= 0 ? last : _weekData.length - 1;
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final selectedDay = _weekData[_selectedIndex];
+    if (_weekData.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final selectedDay = _weekData[_effectiveIndex];
 
     return SectionCard(
       child: Column(
@@ -76,27 +43,32 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Tren Durasi Mingguan',
-                    style: TextStyle(
-                      color: colors.onSurface,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tren Durasi Mingguan',
+                      style: TextStyle(
+                        color: colors.onSurface,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 3),
-                  Text(
-                    'Senin – Minggu • Zona ideal 7-8 Jam',
-                    style: TextStyle(
-                      color: colors.onSurfaceVariant,
-                      fontSize: 12,
+                    SizedBox(height: 3),
+                    Text(
+                      'Senin – Minggu • Zona ideal 7-8 Jam',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -168,10 +140,10 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
 
                 // Bars
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: List.generate(_weekData.length, (index) {
                     final data = _weekData[index];
-                    final isSelected = index == _selectedIndex;
+                    final isSelected = index == _effectiveIndex;
                     return Expanded(
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
@@ -214,25 +186,29 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
                     ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                    border: Border.all(
-                      color: AppTheme.primaryLight.withValues(alpha: 0.4),
-                      width: 0.8,
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                  ),
-                  child: Text(
-                    '${selectedDay.dayName}: ${selectedDay.duration} Jam',
-                    style: TextStyle(
-                      color: colors.onPrimary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                      border: Border.all(
+                        color: AppTheme.primaryLight.withValues(alpha: 0.4),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Text(
+                      '${selectedDay.dayName}: ${selectedDay.duration.toStringAsFixed(1)} Jam',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.onPrimary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -245,8 +221,8 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
   }
 
   Widget _buildBarItem(DaySleepData data, bool isSelected, ColorScheme colors) {
-    // Max scale 10 hours = 120 pixels bar height
-    final barHeight = (data.duration / 10.0) * 120;
+    // Skala 10 jam = 120 px; di-clamp agar durasi ekstrem tidak overflow.
+    final barHeight = (data.duration / 10.0 * 120).clamp(0.0, 120.0);
 
     Color barColor;
     if (isSelected) {
@@ -260,11 +236,10 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
     }
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         // Value text
         Text(
-          '${data.duration}h',
+          data.duration > 0 ? '${data.duration.toStringAsFixed(1)}h' : '-',
           style: TextStyle(
             color: isSelected
                 ? colors.primary
@@ -277,34 +252,39 @@ class _WeeklyTrendChartCardState extends State<WeeklyTrendChartCard> {
         ),
         const SizedBox(height: 5),
 
-        // Bar container
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          width: isSelected ? 22 : 18,
-          height: barHeight,
-          decoration: BoxDecoration(
-            color: barColor,
-            borderRadius: BorderRadius.circular(6),
-            border: isSelected
-                ? Border.all(color: colors.onSurface, width: 1.5)
-                : null,
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppTheme.primary.withValues(alpha: 0.6),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    ),
-                  ]
-                : (data.isOptimal
-                      ? [
-                          BoxShadow(
-                            color: AppTheme.accent.withValues(alpha: 0.25),
-                            blurRadius: 6,
-                          ),
-                        ]
-                      : null),
+        // Bar container — Expanded + Align supaya tinggi sisa dipakai, tidak overflow.
+        Expanded(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              width: isSelected ? 22 : 18,
+              height: barHeight,
+              decoration: BoxDecoration(
+                color: barColor,
+                borderRadius: BorderRadius.circular(6),
+                border: isSelected
+                    ? Border.all(color: colors.onSurface, width: 1.5)
+                    : null,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppTheme.primary.withValues(alpha: 0.6),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : (data.isOptimal
+                          ? [
+                              BoxShadow(
+                                color: AppTheme.accent.withValues(alpha: 0.25),
+                                blurRadius: 6,
+                              ),
+                            ]
+                          : null),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 8),
