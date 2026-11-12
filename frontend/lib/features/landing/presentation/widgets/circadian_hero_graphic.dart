@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Graphic widget representing circadian rhythm / celestial cycle.
-/// Designed with subtle concentric rings and ambient glow matching SleepWise aesthetic.
+/// Graphic widget representing circadian rhythm / celestial cycle
+/// with the prominent SleepWise brand logo in the center.
 class CircadianHeroGraphic extends StatelessWidget {
   final double size;
 
@@ -27,15 +27,20 @@ class CircadianHeroGraphic extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0x1F4F46E5),
+                    color: Color(0x334F46E5),
                     blurRadius: 40,
-                    spreadRadius: 10,
+                    spreadRadius: 8,
+                  ),
+                  BoxShadow(
+                    color: Color(0x2638BDF8),
+                    blurRadius: 24,
+                    spreadRadius: 2,
                   ),
                 ],
               ),
             ),
 
-            // Outer ring
+            // Outer subtle celestial ring
             Container(
               width: size,
               height: size,
@@ -50,59 +55,49 @@ class CircadianHeroGraphic extends StatelessWidget {
 
             // Middle ring
             Container(
-              width: size * 0.82,
-              height: size * 0.82,
+              width: size * 0.84,
+              height: size * 0.84,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0x1F818CF8),
+                  color: const Color(0x26818CF8),
                   width: 1.0,
                 ),
               ),
             ),
 
-            // Main dark celestial disc
+            // Center SleepWise Logo
             Container(
-              width: size * 0.72,
-              height: size * 0.72,
+              width: size * 0.68,
+              height: size * 0.68,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const RadialGradient(
-                  colors: [
-                    Color(0xFF151B2E),
-                    Color(0xFF0E1322),
-                  ],
-                  stops: [0.3, 1.0],
-                ),
+                color: const Color(0xFF1E1B4A),
                 border: Border.all(
-                  color: const Color(0x38334155),
-                  width: 1.2,
+                  color: const Color(0x4D818CF8),
+                  width: 1.5,
                 ),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x40000000),
-                    blurRadius: 25,
-                    offset: Offset(0, 10),
+                    color: Color(0x4D000000),
+                    blurRadius: 24,
+                    offset: Offset(0, 8),
                   ),
                 ],
               ),
-            ),
-
-            // Inner subtle core disc
-            Container(
-              width: size * 0.45,
-              height: size * 0.45,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const RadialGradient(
-                  colors: [
-                    Color(0xFF192035),
-                    Color(0xFF101524),
-                  ],
-                ),
-                border: Border.all(
-                  color: const Color(0x2264748B),
-                  width: 1,
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(
+                        Icons.nightlight_round,
+                        size: 60,
+                        color: Color(0xFF38BDF8),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),

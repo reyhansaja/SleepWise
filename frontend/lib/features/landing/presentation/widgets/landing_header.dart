@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/widgets/sleepwise_logo.dart';
 
 /// Top header for the Landing Page containing the SleepWise logo,
 /// brand name, and the "AI HEALTH" badge.
@@ -10,27 +11,9 @@ class LandingHeader extends StatelessWidget {
     return Row(
       children: [
         // Brand Emblem Icon
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: const Color(0xFF1B1B3A),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFF2E3258),
-              width: 1.5,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x336366F1),
-                blurRadius: 12,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: CustomPaint(
-            painter: _SleepWiseEmblemPainter(),
-          ),
+        const SleepWiseLogo(
+          size: 44,
+          isCircle: true,
         ),
         const SizedBox(width: 12),
 

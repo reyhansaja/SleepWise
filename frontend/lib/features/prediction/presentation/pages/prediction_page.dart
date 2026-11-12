@@ -145,24 +145,7 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
       child: Row(
         children: [
           // Logo
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            ),
-            child: const Center(
-              child: Text(
-                'SW',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          const SleepWiseLogo(size: 38, borderRadius: 10),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
