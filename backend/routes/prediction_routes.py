@@ -2,6 +2,7 @@
 from flask import Blueprint, jsonify, request
 
 from database import db
+from routes.auth_routes import current_user
 from services import prediction_service
 from services.model_loader import ModelUnavailable
 
@@ -18,6 +19,11 @@ def create():
             ("POST /api/predictions", 400, False, "; ".join(errors)[:500]),
         )
         return jsonify({"status": "error", "error": "validasi gagal", "details": errors}), 400
+
+    # Pemilik prediksi diambil dari token (bukan dari body) agar tidak bisa dipalsukan.
+    user = current_user()
+    if user:
+        data["user_id"] = user["id"]
 
     try:
         result = prediction_service.create_prediction(data, (payload or {}).get("model"))
@@ -36,7 +42,9 @@ def create():
 @prediction_bp.get("")
 def history():
     limit = min(max(request.args.get("limit", default=50, type=int) or 50, 1), 200)
-    user_id = request.args.get("user_id", type=int)
+    user = current_user()
+    # User login hanya melihat riwayatnya sendiri; admin / tanpa token melihat semua.
+    user_id = user["id"] if user and user["role"] != "admin" else None
     rows = prediction_service.list_predictions(limit=limit, user_id=user_id)
     return jsonify({"count": len(rows), "data": rows})
 
