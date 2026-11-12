@@ -4,12 +4,12 @@ import 'package:frontend/features/prediction/domain/entities/prediction_input.da
 import 'package:frontend/features/prediction/domain/usecases/predict_sleep_quality.dart';
 
 void main() {
-  test('returns a lower score and recommendation for poor sleep inputs', () {
+  test('returns a lower score and recommendation for poor sleep inputs', () async {
     const predictSleepQuality = PredictSleepQuality(
       LocalPredictionRepository(),
     );
 
-    final result = predictSleepQuality(
+    final result = await predictSleepQuality(
       const PredictionInput(
         sleepDuration: 5,
         physicalActivityLevel: 0,

@@ -7,5 +7,6 @@ class PredictSleepQuality {
 
   const PredictSleepQuality(this.repository);
 
-  PredictionResult call(PredictionInput input) => repository.predict(input);
+  Future<PredictionResult> call(PredictionInput input, {String? token}) =>
+      repository.predict(input, token: token);
 }

@@ -1,6 +1,18 @@
 -- Skema database SleepWise (MySQL 8).
 -- CREATE DATABASE sleepwise CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- Akun aplikasi: login email + kata sandi, dua role (user|admin).
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(191) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_users_email (email)
+);
+
 CREATE TABLE IF NOT EXISTS predictions (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NULL,

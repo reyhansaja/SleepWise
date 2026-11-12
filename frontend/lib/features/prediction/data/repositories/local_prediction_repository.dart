@@ -6,7 +6,7 @@ class LocalPredictionRepository implements PredictionRepository {
   const LocalPredictionRepository();
 
   @override
-  PredictionResult predict(PredictionInput input) {
+  Future<PredictionResult> predict(PredictionInput input, {String? token}) async {
     var score = 100;
     final recommendations = <String>[];
 

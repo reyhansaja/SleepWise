@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/core/widgets/sleepwise_logo.dart';
+import 'package:frontend/features/auth/data/auth_service.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -12,8 +13,45 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
   bool _rememberMe = false;
   bool _isObscure = true;
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text;
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _error = 'Email dan kata sandi wajib diisi.');
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final user = await ref.read(authApiProvider).login(email, password);
+      if (!mounted) return;
+      ref.read(authSessionProvider.notifier).set(user);
+      Navigator.pushReplacementNamed(context, '/main');
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,6 +193,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       _buildInputLabel('Email / Akun Kampus', context),
                       const SizedBox(height: 8),
                       TextField(
+                        controller: _emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        autocorrect: false,
                         style: TextStyle(
                           color: AppAuthColors.textMain(context),
                           fontSize: 14,
@@ -170,7 +212,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       _buildInputLabel('Kata Sandi', context),
                       const SizedBox(height: 8),
                       TextField(
+                        controller: _passwordCtrl,
                         obscureText: _isObscure,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _loading ? null : _submit(),
                         style: TextStyle(
                           color: AppAuthColors.textMain(context),
                           fontSize: 14,
@@ -240,6 +285,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                         ],
                       ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.error_outline_rounded,
+                              size: 16,
+                              color: Color(0xFFF87171),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                _error!,
+                                style: const TextStyle(
+                                  color: Color(0xFFF87171),
+                                  fontSize: 12.5,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 20),
 
                       // Tombol Masuk
@@ -247,9 +316,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         width: double.infinity,
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(context, '/main');
-                          },
+                          onPressed: _loading ? null : _submit,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF818CF8),
                             elevation: 0,
@@ -257,23 +324,34 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               borderRadius: BorderRadius.circular(24),
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                'Masuk ke Akun',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
+                              if (_loading)
+                                const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              else ...[
+                                const Text(
+                                  'Masuk ke Akun',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 18,
                                   color: Colors.white,
                                 ),
-                              ),
-                              SizedBox(width: 8),
-                              Icon(
-                                Icons.arrow_forward_rounded,
-                                size: 18,
-                                color: Colors.white,
-                              ),
+                              ],
                             ],
                           ),
                         ),
