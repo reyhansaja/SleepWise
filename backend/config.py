@@ -34,6 +34,10 @@ class Config:
     UPLOAD_DIR = _path("UPLOAD_DIR", BASE_DIR / "uploads")
     DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "selected")  # selected|random_forest|decision_tree
 
+    # Kunci penanda tangan token login (ganti di produksi) + masa berlaku token.
+    SECRET_KEY = os.getenv("SECRET_KEY", "sleepwise-dev-secret-ganti-di-produksi")
+    TOKEN_TTL_SECONDS = int(os.getenv("TOKEN_TTL_SECONDS", str(7 * 24 * 3600)))
+
     MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
     MAX_UPLOAD_ROWS = int(os.getenv("MAX_UPLOAD_ROWS", "200000"))
     # Bila diisi, endpoint training wajib header X-Training-Token

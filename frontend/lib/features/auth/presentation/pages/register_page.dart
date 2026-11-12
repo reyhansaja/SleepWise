@@ -3,6 +3,7 @@ import 'package:frontend/core/widgets/sleepwise_logo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
+import 'package:frontend/features/auth/data/auth_service.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -12,8 +13,70 @@ class RegisterPage extends ConsumerStatefulWidget {
 }
 
 class _RegisterPageState extends ConsumerState<RegisterPage> {
-  bool _isObscure = false;
+  final _namaCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  bool _isObscure = true;
   bool _agreeTerms = true;
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _namaCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final nama = _namaCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final sandi = _passwordCtrl.text;
+
+    if (nama.length < 3) {
+      setState(() => _error = 'Nama lengkap minimal 3 karakter.');
+      return;
+    }
+    if (!email.contains('@') || !email.contains('.')) {
+      setState(() => _error = 'Format email tidak valid.');
+      return;
+    }
+    if (sandi.length < 8) {
+      setState(() => _error = 'Kata sandi minimal 8 karakter.');
+      return;
+    }
+    if (sandi != _confirmCtrl.text) {
+      setState(() => _error = 'Konfirmasi kata sandi tidak sama.');
+      return;
+    }
+    if (!_agreeTerms) {
+      setState(() => _error = 'Setujui Ketentuan Layanan untuk melanjutkan.');
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final user = await ref.read(authApiProvider).register(nama, email, sandi);
+      if (!mounted) return;
+      ref.read(authSessionProvider.notifier).set(user);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registrasi berhasil. Selamat datang!')),
+      );
+      Navigator.pushReplacementNamed(context, '/main');
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +208,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               _buildFormLabel(context, Icons.person_outline, 'Nama Lengkap'),
               const SizedBox(height: 8),
               TextField(
-                controller: TextEditingController(text: 'Sarah Nabila'),
+                controller: _namaCtrl,
+                textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
                 style: TextStyle(color: colors.onSurface, fontSize: 14),
                 decoration: _buildInputDecoration(
                   context: context,
@@ -162,6 +227,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               _buildFormLabel(context, Icons.email_outlined, 'Alamat Email'),
               const SizedBox(height: 8),
               TextField(
+                controller: _emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autocorrect: false,
                 style: TextStyle(color: colors.onSurface, fontSize: 14),
                 decoration: _buildInputDecoration(
                   context: context,
@@ -193,8 +262,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: TextEditingController(text: 'NightRest#2025!'),
+                controller: _passwordCtrl,
                 obscureText: _isObscure,
+                textInputAction: TextInputAction.next,
                 style: TextStyle(color: colors.onSurface, fontSize: 14),
                 decoration: _buildInputDecoration(
                   context: context,
@@ -261,8 +331,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: TextEditingController(text: 'NightRest#2025!'),
+                controller: _confirmCtrl,
                 obscureText: true,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _loading ? null : _submit(),
                 style: TextStyle(color: colors.onSurface, fontSize: 14),
                 decoration: _buildInputDecoration(
                   context: context,
@@ -319,6 +391,30 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   ),
                 ],
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      size: 16,
+                      color: Color(0xFFF87171),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _error!,
+                        style: const TextStyle(
+                          color: Color(0xFFF87171),
+                          fontSize: 12.5,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 24),
 
               // Tombol Daftar
@@ -326,7 +422,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _loading ? null : _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primary,
                     elevation: 0,

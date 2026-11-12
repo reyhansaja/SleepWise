@@ -55,20 +55,26 @@ class ProfilePage extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text(
-                'SleepWise',
-                style: TextStyle(
-                  color: colors.onSurface,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Profil Sleepwise',
-                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+              const SleepWiseLogo(size: 38, borderRadius: 10),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'SleepWise',
+                    style: TextStyle(
+                      color: colors.onSurface,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Profil Sleepwise',
+                    style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+                  ),
+                ],
               ),
             ],
           ),
