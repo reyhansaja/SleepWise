@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
+import 'package:frontend/core/widgets/sleepwise_logo.dart';
 import 'package:frontend/features/auth/data/auth_service.dart';
 import 'package:frontend/features/prediction/data/repositories/api_prediction_repository.dart';
 import 'package:frontend/features/prediction/domain/entities/prediction_input.dart';

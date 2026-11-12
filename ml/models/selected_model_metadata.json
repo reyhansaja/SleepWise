@@ -3,7 +3,7 @@
   "model_name": "Decision Tree",
   "selection_metric": "cv_f1_weighted",
   "selection_rule": "dipilih manual dari halaman ML Training",
-  "pipeline_path": "C:\\code\\sleepwise\\SleepWise\\ml\\models\\selected_pipeline.joblib",
+  "pipeline_path": "C:\\ListPc\\PBL\\SleepWise\\ml\\models\\selected_pipeline.joblib",
   "classes": [
     "Average",
     "Good",
@@ -56,11 +56,11 @@
   ],
   "cv": {
     "folds": 3,
-    "accuracy_mean": 0.9564309764309765,
-    "accuracy_std": 0.02085433930624753,
-    "f1_weighted_mean": 0.9539195269325068,
-    "f1_weighted_std": 0.022234241463237187,
-    "f1_macro_mean": 0.875616054107263
+    "accuracy_mean": 0.9564646464646464,
+    "accuracy_std": 0.017196061175366397,
+    "f1_weighted_mean": 0.9531175967355024,
+    "f1_weighted_std": 0.019911122468540588,
+    "f1_macro_mean": 0.7919402044501965
   },
   "test_metrics": {
     "accuracy": 1.0,
@@ -73,10 +73,10 @@
     {
       "model": "Random Forest",
       "model_key": "random_forest",
-      "cv_f1_weighted": 0.9693078887104044,
-      "cv_f1_weighted_std": 0.015329726422003892,
-      "cv_accuracy": 0.9698316498316498,
-      "cv_f1_macro": 0.9412814881368341,
+      "cv_f1_weighted": 0.9646964352519908,
+      "cv_f1_weighted_std": 0.02185040336514541,
+      "cv_accuracy": 0.9664646464646465,
+      "cv_f1_macro": 0.9060846560846562,
       "test_accuracy": 1.0,
       "test_precision_weighted": 1.0,
       "test_recall_weighted": 1.0,
@@ -86,10 +86,10 @@
     {
       "model": "Decision Tree",
       "model_key": "decision_tree",
-      "cv_f1_weighted": 0.9539195269325068,
-      "cv_f1_weighted_std": 0.022234241463237187,
-      "cv_accuracy": 0.9564309764309765,
-      "cv_f1_macro": 0.875616054107263,
+      "cv_f1_weighted": 0.9531175967355024,
+      "cv_f1_weighted_std": 0.019911122468540588,
+      "cv_accuracy": 0.9564646464646464,
+      "cv_f1_macro": 0.7919402044501965,
       "test_accuracy": 1.0,
       "test_precision_weighted": 1.0,
       "test_recall_weighted": 1.0,
@@ -97,6 +97,6 @@
       "test_f1_macro": 1.0
     }
   ],
-  "selected_at": "2026-11-12T13:15:56+00:00",
-  "source_run": "20261112131537-8590a3"
+  "selected_at": "2026-11-12T14:41:04+00:00",
+  "source_run": "20261112144056-e66729"
 }

@@ -4,6 +4,7 @@ import 'package:frontend/core/navigation/app_routes.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/core/widgets/section_card.dart';
+import 'package:frontend/core/widgets/sleepwise_logo.dart';
 import '../../domain/entities/user_profile.dart';
 import '../providers/user_profile_provider.dart';
 import '../widgets/profile_avatar.dart';
