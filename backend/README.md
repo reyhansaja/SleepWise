@@ -54,6 +54,10 @@ Bila MySQL mati, backend tetap melayani prediksi; field `stored` bernilai `false
 
 | Method | Endpoint | Keterangan |
 | --- | --- | --- |
+| POST | `/api/auth/register` | daftar akun baru (role selalu `user`) |
+| POST | `/api/auth/login` | login email + kata sandi, dapat token |
+| GET | `/api/auth/me` | profil pemilik token |
+| GET | `/api/auth/users` | daftar akun (khusus role `admin`) |
 | GET | `/api/health` | status backend, MySQL, model aktif |
 | GET | `/api/models` | model yang tersedia + metadata model selection |
 | POST | `/api/predictions` | prediksi + rekomendasi + simpan ke MySQL |
@@ -99,6 +103,78 @@ Opsional: `"model": "decision_tree"` untuk memakai artefak per algoritma
   ]
 }
 ```
+
+## Autentikasi
+
+Dua role: `user` (default hasil register) dan `admin`. Kata sandi disimpan
+sebagai hash scrypt (`werkzeug.security`), token ditandatangani `itsdangerous`
+dan berlaku `TOKEN_TTL_SECONDS` (default 7 hari).
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"nama_lengkap":"Budi","email":"budi@mail.com","kata_sandi":"rahasia123"}'
+
+curl -X POST http://127.0.0.1:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"budi@mail.com","kata_sandi":"rahasia123"}'
+```
+
+Respons login/register (HTTP 201 untuk register):
+
+```json
+{
+  "status": "success",
+  "message": "login berhasil",
+  "data": {"id": 1, "nama_lengkap": "Budi", "email": "budi@mail.com", "role": "user", "token": "<token>"}
+}
+```
+
+Token dipakai di header `Authorization: Bearer <token>`.
+
+| Field | Aturan |
+| --- | --- |
+| `nama_lengkap` | wajib, minimal 3 karakter (alias: `full_name`, `nama`) |
+| `email` | wajib, format email, unik, disimpan huruf kecil |
+| `kata_sandi` | wajib, minimal 8 karakter (alias: `password`) |
+
+Error: `400` validasi (dengan `details`), `409` email sudah terdaftar,
+`401` email/kata sandi salah atau token tidak valid, `403` bukan admin,
+`503` MySQL mati.
+
+Register selalu menghasilkan role `user`. Untuk membuat admin:
+
+```powershell
+.\.venv\Scripts\python.exe -c "from werkzeug.security import generate_password_hash as g; print(g('admin12345'))"
+# INSERT INTO users (full_name, email, password_hash, role) VALUES ('Admin', 'admin@mail.com', '<hash>', 'admin');
+```
+
+Akses dari HP: backend harus bind ke semua interface.
+
+```powershell
+$env:FLASK_HOST="0.0.0.0"; .\.venv\Scripts\python.exe backend/app.py
+# lalu di aplikasi: http://<ip-laptop>:5000/api  (mis. 192.168.7.2)
+```
+
+## Keamanan
+
+Sudah diterapkan:
+
+- Kata sandi hash scrypt (`werkzeug.security`), token ditandatangani `itsdangerous`
+  dengan masa berlaku; `SECRET_KEY` **wajib** diganti di produksi.
+- `/api/auth/users` hanya untuk role `admin`; `/api/auth/me` butuh token valid.
+- `FLASK_DEBUG` harus `false` bila backend dijangkau perangkat lain — mode debug
+  membuka `/console` (Werkzeug debugger) yang bisa berujung eksekusi kode jarak jauh.
+- `TRAINING_TOKEN` wajib diisi; tanpa itu `/api/ml/upload`, `/api/ml/train`, dan
+  `/api/ml/runs/<id>/promote` terbuka untuk siapa saja.
+
+Belum aman (utang teknis):
+
+- `/api/predictions` (GET list, GET detail, POST) belum memakai autentikasi dan
+  masih menerima `user_id` dari body request. Siapa pun bisa membaca seluruh
+  riwayat prediksi (data kesehatan) dan menulis atas nama user lain.
+- Belum ada rate limit / lockout pada `/api/auth/login`.
+- `CORS_ORIGINS=*`; sempitkan ke origin frontend saat produksi.
 
 ## Validasi input
 

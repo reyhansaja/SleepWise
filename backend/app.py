@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import Config  # noqa: E402
 from database import db  # noqa: E402
+from routes.auth_routes import auth_bp  # noqa: E402
 from routes.health_routes import health_bp  # noqa: E402
 from routes.prediction_routes import prediction_bp  # noqa: E402
 from routes.training_routes import training_bp  # noqa: E402
@@ -21,6 +22,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app, origins=Config.CORS_ORIGINS)
 
+    app.register_blueprint(auth_bp)
     app.register_blueprint(health_bp)
     app.register_blueprint(prediction_bp)
     app.register_blueprint(training_bp)

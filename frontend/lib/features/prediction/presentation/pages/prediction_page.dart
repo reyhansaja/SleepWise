@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
-import 'package:frontend/core/widgets/sleepwise_logo.dart';
-import 'package:frontend/features/prediction/data/repositories/local_prediction_repository.dart';
+import 'package:frontend/features/auth/data/auth_service.dart';
+import 'package:frontend/features/prediction/data/repositories/api_prediction_repository.dart';
 import 'package:frontend/features/prediction/domain/entities/prediction_input.dart';
+import 'package:frontend/features/prediction/domain/entities/prediction_result.dart';
 import 'package:frontend/features/prediction/domain/usecases/predict_sleep_quality.dart';
 import 'package:frontend/features/prediction/presentation/widgets/aktivitas_fisik_widget.dart';
 import 'package:frontend/features/prediction/presentation/widgets/bmi_widget.dart';
@@ -23,7 +24,10 @@ class PredictionPage extends ConsumerStatefulWidget {
 
 class _PredictionPageState extends ConsumerState<PredictionPage>
     with SingleTickerProviderStateMixin {
-  final _predictSleepQuality = PredictSleepQuality(LocalPredictionRepository());
+
+  bool _loading = false;
+  PredictionResult? _result;
+  String? _error;
 
   // ── State variables ──
   double _durasiTidur = 7.5;
@@ -114,6 +118,14 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
                   _buildBioFeedbackPreview(),
                   const SizedBox(height: 20),
                   _buildCtaButton(),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    _buildError(),
+                  ],
+                  if (_result != null) ...[
+                    const SizedBox(height: 12),
+                    _buildResultCard(_result!),
+                  ],
                   const SizedBox(height: 24),
                 ]),
               ),
@@ -376,9 +388,7 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
-                _runPrediction();
-              },
+              onTap: _loading ? null : _runPrediction,
               borderRadius: BorderRadius.circular(AppTheme.radiusLg),
               child: Ink(
                 decoration: BoxDecoration(
@@ -389,17 +399,29 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Column(
                     children: [
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.auto_awesome,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          SizedBox(width: 8),
+                          if (_loading)
+                            const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          else
+                            const Icon(
+                              Icons.auto_awesome,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          const SizedBox(width: 8),
                           Text(
-                            'Prediksi Kualitas Tidur Sekarang',
+                            _loading
+                                ? 'Menghitung...'
+                                : 'Prediksi Kualitas Tidur Sekarang',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 15,
@@ -427,25 +449,123 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
     );
   }
 
-  void _runPrediction() {
-    final result = _predictSleepQuality(
-      PredictionInput(
-        sleepDuration: _durasiTidur,
-        physicalActivityLevel: _aktivitasFisikIndex,
-        stressLevel: _tingkatStres,
-        caffeineServings: _kafein,
-        nightScreenMinutes: _layarMalam,
-        heartRate: _detakJantung,
-        bmiCategory: _bmiIndex,
+  Future<void> _runPrediction() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _result = null;
+    });
+
+    try {
+      final result = await PredictSleepQuality(
+        ref.read(predictionRepositoryProvider),
+      )(
+        PredictionInput(
+          sleepDuration: _durasiTidur,
+          physicalActivityLevel: _aktivitasFisikIndex,
+          stressLevel: _tingkatStres,
+          caffeineServings: _kafein,
+          nightScreenMinutes: _layarMalam,
+          heartRate: _detakJantung,
+          bmiCategory: _bmiIndex,
+        ),
+        token: ref.read(authSessionProvider)?.token,
+      );
+      if (!mounted) return;
+      setState(() => _result = result);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Widget _buildError() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF87171).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: const Color(0xFFF87171).withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.error_outline_rounded, size: 18, color: Color(0xFFF87171)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _error!,
+              style: const TextStyle(
+                color: Color(0xFFF87171),
+                fontSize: 12.5,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
     );
+  }
 
-    final detail = result.recommendations.isEmpty
-        ? 'Pertahankan rutinitas tidur yang konsisten.'
-        : result.recommendations.first;
+  Widget _buildResultCard(PredictionResult result) {
+    final colors = Theme.of(context).colorScheme;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${result.label} (${result.score}/100). $detail')),
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spacingLg),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.accent.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.verified_rounded, size: 18, color: AppTheme.accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  result.label,
+                  style: TextStyle(
+                    color: colors.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                'keyakinan ${result.score}%',
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          for (final message in result.recommendations)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.circle, size: 5, color: colors.onSurfaceVariant),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12.5,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

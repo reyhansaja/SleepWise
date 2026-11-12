@@ -12,6 +12,39 @@ flutter pub get
 flutter run
 ```
 
+## Prediksi via Backend
+
+Halaman prediksi (`features/prediction/`) memanggil `POST /api/predictions` melalui
+`ApiPredictionRepository`. Form yang ada sekarang hanya mengumpulkan durasi tidur,
+aktivitas fisik, stres, kafein, layar malam, detak jantung, dan BMI; field yang
+dibutuhkan model tapi belum ada inputnya (gender, usia, langkah harian, tekanan
+darah, sleep disorder) dikirim dengan nilai default di
+`api_prediction_repository.dart`. Kartu hasil menampilkan label Good/Average/Poor
+dalam bahasa Indonesia, keyakinan model, dan rekomendasi dari backend.
+
+Menambah akurasi: tambah field tersebut ke `PredictionInput` + widget form, lalu
+teruskan lewat `payload()`.
+
+## Backend & Autentikasi
+
+Login/register memanggil backend Flask (`backend/`) lewat `lib/features/auth/data/auth_service.dart`.
+
+- Base URL default `http://127.0.0.1:5000/api`; timpa dengan
+  `flutter run --dart-define=API_BASE=http://192.168.7.2:5000/api`.
+- Android (emulator maupun HP via USB) butuh `adb reverse tcp:5000 tcp:5000`
+  supaya `127.0.0.1` di perangkat menunjuk ke laptop. Tanpa ini muncul
+  "Tidak bisa menghubungi server".
+- HP lewat Wi-Fi: jalankan backend dengan `FLASK_HOST=0.0.0.0`, lalu pakai
+  `--dart-define=API_BASE=http://<ip-laptop>:5000/api`.
+- Backend harus jalan lebih dulu: `python backend/app.py` (butuh MySQL).
+- Token disimpan di `authSessionProvider` (memori saja, hilang saat app ditutup).
+
+Test:
+```powershell
+flutter test test/auth_flow_test.dart                     # alur UI, klien HTTP palsu
+flutter test --dart-define=API_BASE=http://127.0.0.1:5000/api test/auth_api_test.dart
+```
+
 ## Struktur Clean Architecture
 
 ```text
