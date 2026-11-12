@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/landing/presentation/pages/landing_page.dart';
+import '../../features/profile/presentation/pages/edit_profile_page.dart';
 import 'main_shell.dart';
 
 abstract final class AppRoutes {
@@ -15,6 +16,7 @@ abstract final class AppRoutes {
   static const history = '/history';
   static const statistics = '/statistics';
   static const profile = '/profile';
+  static const editProfile = '/edit-profile';
 
   static const initialRoute = landing;
 
@@ -29,5 +31,6 @@ abstract final class AppRoutes {
     history: (context) => const MainShell(initialIndex: 2),
     statistics: (context) => const MainShell(initialIndex: 3),
     profile: (context) => const MainShell(initialIndex: 4),
+    editProfile: (context) => const EditProfilePage(),
   };
 }
