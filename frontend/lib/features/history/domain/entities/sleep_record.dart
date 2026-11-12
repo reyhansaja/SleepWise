@@ -8,6 +8,7 @@ class SleepRecord {
   final int score; // confidence 0-100
   final int stressLevel;
   final int heartRate;
+  final DateTime? createdAt;
 
   const SleepRecord({
     required this.id,
@@ -19,6 +20,7 @@ class SleepRecord {
     required this.score,
     required this.stressLevel,
     required this.heartRate,
+    this.createdAt,
   });
 
   factory SleepRecord.fromJson(Map<String, dynamic> json) {
@@ -34,6 +36,7 @@ class SleepRecord {
       score: (confidence * 100).round(),
       stressLevel: _num(json['stress_level'])?.toInt() ?? 0,
       heartRate: _num(json['heart_rate'])?.toInt() ?? 0,
+      createdAt: DateTime.tryParse(rawDate.replaceFirst(' ', 'T')),
     );
   }
 }

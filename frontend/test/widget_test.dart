@@ -50,9 +50,7 @@ void main() {
   testWidgets('navigasi tab statistik menampilkan analisis sirkadian', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: SleepWiseApp(initialRoute: '/statistics')),
-    );
+    await tester.pumpWidget(_app('/statistics'));
     await tester.pumpAndSettle();
 
     expect(find.text('SleepWise'), findsOneWidget);
@@ -62,9 +60,7 @@ void main() {
   testWidgets('toggle tema halaman statistik mengganti tampilannya', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: SleepWiseApp(initialRoute: '/statistics')),
-    );
+    await tester.pumpWidget(_app('/statistics'));
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Ganti Tema'), findsOneWidget);
