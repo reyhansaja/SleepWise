@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
+import 'package:frontend/core/widgets/sleepwise_logo.dart';
 
 const _mint = Color(0xFF43DFAE);
 const _orange = Color(0xFFFFB34D);
@@ -137,15 +138,7 @@ class _DashboardHeader extends ConsumerWidget {
 
     return Row(
       children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: const Color(0xFF252C53),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.nights_stay_rounded, color: _mint, size: 21),
-        ),
+        const SleepWiseLogo(size: 36, borderRadius: 12),
         const SizedBox(width: 10),
         Expanded(
           child: Column(

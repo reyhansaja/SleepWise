@@ -4,7 +4,6 @@ import '../../../../core/navigation/app_routes.dart';
 import '../widgets/circadian_hero_graphic.dart';
 import '../widgets/landing_action_button.dart';
 import '../widgets/landing_content.dart';
-import '../widgets/landing_header.dart';
 
 /// Landing page displayed when the SleepWise application is launched.
 /// Provides an onboarding overview and navigates to the login page upon tapping "Lanjut".
@@ -46,21 +45,18 @@ class LandingPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top Section: Header
-                        const Padding(
-                          padding: EdgeInsets.only(top: 8.0, bottom: 12.0),
-                          child: LandingHeader(),
-                        ),
+                        // Top Spacer (Header removed)
+                        const SizedBox(height: 16),
 
                         // Center Section: Hero Graphic & Text Content
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Concentric Circadian Graphic
+                            // Concentric Circadian Graphic with SleepWise Logo
                             CircadianHeroGraphic(
-                              size: (constraints.maxHeight * 0.26).clamp(160.0, 240.0),
+                              size: (constraints.maxHeight * 0.32).clamp(190.0, 270.0),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 24),
 
                             // Tag, Headlines, and Subtitle
                             const LandingContent(),
