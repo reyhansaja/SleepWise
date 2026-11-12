@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
+import 'package:frontend/core/widgets/sleepwise_logo.dart';
 import 'package:frontend/features/prediction/data/repositories/local_prediction_repository.dart';
 import 'package:frontend/features/prediction/domain/entities/prediction_input.dart';
 import 'package:frontend/features/prediction/domain/usecases/predict_sleep_quality.dart';
@@ -132,24 +133,7 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
       child: Row(
         children: [
           // Logo
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            ),
-            child: const Center(
-              child: Text(
-                'SW',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          const SleepWiseLogo(size: 38, borderRadius: 10),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
