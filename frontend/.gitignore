@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Mengabaikan file generated plugin registrants di berbagai platform
+**/linux/flutter/
+**/macos/Flutter/
+**/windows/flutter/
+frontend/linux/flutter/
+frontend/macos/Flutter/
+frontend/windows/flutter/
