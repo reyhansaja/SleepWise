@@ -1,26 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/navigation/app_routes.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/core/widgets/section_card.dart';
-import 'package:frontend/core/widgets/sleepwise_logo.dart';
+import '../../domain/entities/user_profile.dart';
+import '../providers/user_profile_provider.dart';
+import '../widgets/profile_avatar.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(userProfileProvider);
+
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(child: _buildHeader(context, ref)),
+            SliverToBoxAdapter(child: _buildHeader(context, ref, profile)),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: 16),
-                  _buildProfileCard(context),
+                  _buildProfileCard(context, profile),
                   const SizedBox(height: 16),
                   _buildStatsRow(context),
                   const SizedBox(height: 16),
@@ -41,7 +46,7 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref, UserProfile profile) {
     final colors = Theme.of(context).colorScheme;
     final isDarkMode = colors.brightness == Brightness.dark;
 
@@ -87,23 +92,13 @@ class ProfilePage extends ConsumerWidget {
                   color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
                 ),
               ),
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.5),
-                    width: 1.5,
-                  ),
-                  color: colors.surface,
-                ),
-                child: ClipOval(
-                  child: Icon(
-                    Icons.person_rounded,
-                    color: colors.onSurfaceVariant.withValues(alpha: 0.8),
-                    size: 24,
-                  ),
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
+                child: ProfileAvatar(
+                  avatarId: profile.avatarId,
+                  radius: 18,
+                  showBorder: true,
+                  borderColor: colors.primary.withValues(alpha: 0.5),
                 ),
               ),
             ],
@@ -113,55 +108,55 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileCard(BuildContext context) {
+  Widget _buildProfileCard(BuildContext context, UserProfile profile) {
     final colors = Theme.of(context).colorScheme;
 
     return SectionCard(
       child: Column(
         children: [
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.primary, width: 2),
-                ),
-                child: CircleAvatar(
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
+            child: Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                ProfileAvatar(
+                  avatarId: profile.avatarId,
                   radius: 36,
-                  backgroundColor: colors.surface,
-                  child: Icon(
-                    Icons.person,
-                    size: 40,
-                    color: colors.onSurfaceVariant,
+                  showBorder: true,
+                  borderColor: AppTheme.primary,
+                ),
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: colors.surface,
+                      width: 2,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    size: 12,
+                    color: Colors.white,
                   ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: AppTheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.camera_alt,
-                  size: 12,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Sarah Nabila',
-                style: TextStyle(
-                  color: colors.onSurface,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              Flexible(
+                child: Text(
+                  profile.fullName,
+                  style: TextStyle(
+                    color: colors.onSurface,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
@@ -171,13 +166,14 @@ class ProfilePage extends ConsumerWidget {
                   color: AppTheme.success.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
-                child: const Row(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.verified, size: 12, color: AppTheme.success),
-                    SizedBox(width: 4),
+                    const Icon(Icons.verified, size: 12, color: AppTheme.success),
+                    const SizedBox(width: 4),
                     Text(
-                      'Mahasiswa Terverifikasi',
-                      style: TextStyle(
+                      '${profile.occupation} Terverifikasi',
+                      style: const TextStyle(
                         color: AppTheme.success,
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -190,8 +186,9 @@ class ProfilePage extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'sarah.nabila@kampus.ac.id',
+            '${profile.email}  •  @${profile.username}',
             style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Row(
@@ -204,7 +201,7 @@ class ProfilePage extends ConsumerWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                'Anggota sejak Maret 2024  •  ',
+                'Lahir ${profile.birthDateFormatted}  •  ',
                 style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
               ),
               Text(
@@ -218,26 +215,29 @@ class ProfilePage extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.edit, size: 14, color: colors.onSurfaceVariant),
-                SizedBox(width: 6),
-                Text(
-                  'Edit Profil',
-                  style: TextStyle(
-                    color: colors.onSurfaceVariant,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: colors.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.edit, size: 14, color: colors.onSurfaceVariant),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Edit Profil',
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
