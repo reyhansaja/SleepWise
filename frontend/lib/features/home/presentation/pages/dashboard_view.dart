@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/navigation/app_routes.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/core/widgets/sleepwise_logo.dart';
+import '../../../profile/presentation/providers/user_profile_provider.dart';
+import '../../../profile/presentation/widgets/profile_avatar.dart';
 
 const _mint = Color(0xFF43DFAE);
 const _orange = Color(0xFFFFB34D);
@@ -52,7 +55,15 @@ class _DashboardViewState extends State<DashboardView> {
                       width: contentWidth,
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-                        child: const _DashboardContent(),
+                        child: _DashboardContent(
+                          onProfileTap: () {
+                            if (widget.onTabSelected != null) {
+                              widget.onTabSelected!(4);
+                            } else {
+                              Navigator.pushNamed(context, AppRoutes.profile);
+                            }
+                          },
+                        ),
                       ),
                     ),
                   );
@@ -76,7 +87,9 @@ class _DashboardViewState extends State<DashboardView> {
 
 // Bagian ini berisi urutan kartu utama seperti pada rancangan dashboard.
 class _DashboardContent extends StatelessWidget {
-  const _DashboardContent();
+  final VoidCallback? onProfileTap;
+
+  const _DashboardContent({this.onProfileTap});
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +98,7 @@ class _DashboardContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _DashboardHeader(),
+        _DashboardHeader(onProfileTap: onProfileTap),
         const SizedBox(height: 18),
         Text(
           _formattedToday(),
@@ -129,12 +142,15 @@ class _DashboardContent extends StatelessWidget {
 
 // Header menampilkan identitas aplikasi dan avatar pengguna.
 class _DashboardHeader extends ConsumerWidget {
-  const _DashboardHeader();
+  final VoidCallback? onProfileTap;
+
+  const _DashboardHeader({this.onProfileTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final isDarkMode = colors.brightness == Brightness.dark;
+    final profile = ref.watch(userProfileProvider);
 
     return Row(
       children: [
@@ -153,7 +169,7 @@ class _DashboardHeader extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(height: 3),
+              const SizedBox(height: 3),
               Text(
                 'Dashboard',
                 style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
@@ -171,19 +187,17 @@ class _DashboardHeader extends ConsumerWidget {
             color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
           ),
         ),
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: colors.outline, width: 2),
-            gradient: const LinearGradient(
-              colors: [Color(0xFFF5D4B3), Color(0xFF8CA2BC)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        GestureDetector(
+          onTap: onProfileTap,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: ProfileAvatar(
+              avatarId: profile.avatarId,
+              radius: 20,
+              showBorder: true,
+              borderColor: colors.outline,
             ),
           ),
-          child: Icon(Icons.person_rounded, color: colors.onSurface, size: 25),
         ),
       ],
     );

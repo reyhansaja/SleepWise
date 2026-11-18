@@ -20,7 +20,7 @@ class ProfilePage extends ConsumerWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(child: _buildHeader(context, ref, profile)),
+            SliverToBoxAdapter(child: _buildHeader(context, ref)),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
@@ -47,7 +47,7 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref, UserProfile profile) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final isDarkMode = colors.brightness == Brightness.dark;
 
@@ -79,30 +79,17 @@ class ProfilePage extends ConsumerWidget {
               ),
             ],
           ),
-          Row(
-            children: [
-              IconButton(
-                tooltip: 'Ganti Tema',
-                onPressed: () {
-                  ref.read(themeModeProvider.notifier).toggle();
-                },
-                icon: Icon(
-                  isDarkMode
-                      ? Icons.dark_mode_rounded
-                      : Icons.light_mode_rounded,
-                  color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
-                ),
-              ),
-              GestureDetector(
-                onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
-                child: ProfileAvatar(
-                  avatarId: profile.avatarId,
-                  radius: 18,
-                  showBorder: true,
-                  borderColor: colors.primary.withValues(alpha: 0.5),
-                ),
-              ),
-            ],
+          IconButton(
+            tooltip: 'Ganti Tema',
+            onPressed: () {
+              ref.read(themeModeProvider.notifier).toggle();
+            },
+            icon: Icon(
+              isDarkMode
+                  ? Icons.dark_mode_rounded
+                  : Icons.light_mode_rounded,
+              color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
+            ),
           ),
         ],
       ),
