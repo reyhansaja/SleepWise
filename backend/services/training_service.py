@@ -178,12 +178,12 @@ def _models(params: dict) -> dict:
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.tree import DecisionTreeClassifier
 
-    shared = {
+    shared: dict = {
         "random_state": int(params.get("random_state", 42)),
         "min_samples_leaf": int(params.get("min_samples_leaf", 1)),
     }
     max_depth = params.get("max_depth")
-    shared: dict = {"max_depth": int(max_depth) if max_depth not in (None, "", "None") else None}
+    shared["max_depth"] = int(max_depth) if max_depth not in (None, "", "None") else None
 
     return {
         "random_forest": {
@@ -231,6 +231,20 @@ def _feature_importance(preprocessor, categorical, numerical, values, top: int =
 
     ranked = sorted(totals.items(), key=lambda kv: kv[1], reverse=True)[:top]
     return [{"feature": k, "importance": round(v, 4)} for k, v in ranked]
+
+
+def _feature_ranges(X) -> dict:
+    """Rentang nilai tiap fitur di data latih, dipakai endpoint prediksi untuk
+    memperingatkan input di luar wilayah yang pernah dilihat model."""
+    ranges: dict = {}
+    for col in X.columns:
+        series = X[col]
+        if str(series.dtype) in {"object", "category"}:
+            ranges[col] = {"type": "categorical", "values": sorted(map(str, series.dropna().unique()))}
+        else:
+            ranges[col] = {"type": "numeric", "min": round(float(series.min()), 4),
+                           "max": round(float(series.max()), 4)}
+    return ranges
 
 
 def run_training(dataset_id: str, target_column: str | None = None, params: dict | None = None) -> dict:
@@ -316,6 +330,7 @@ def run_training(dataset_id: str, target_column: str | None = None, params: dict
         "numerical_features": prepared["numerical"],
         "rows": prepared["rows"],
         "classes": labels,
+        "feature_ranges": _feature_ranges(X),
         "split": {"test_size": test_size, "random_state": random_state, "folds": folds,
                   "train_rows": int(len(X_train)), "test_rows": int(len(X_test))},
         "params": {k: params.get(k) for k in ("n_estimators", "max_depth", "min_samples_leaf")},
@@ -384,12 +399,20 @@ def promote(run_id: str, model_key: str) -> dict:
     model_dir.mkdir(parents=True, exist_ok=True)
     backup_dir = model_dir / "runs" / "_previous"
     backup_dir.mkdir(parents=True, exist_ok=True)
+    previous_ranges: dict = {}
+    previous_meta = model_dir / "selected_model_metadata.json"
+    if previous_meta.exists():
+        try:
+            previous_ranges = json.loads(previous_meta.read_text(encoding="utf-8")).get("feature_ranges", {})
+        except (OSError, ValueError):
+            previous_ranges = {}
     for name in ("selected_pipeline.joblib", "selected_model_metadata.json"):
         current = model_dir / name
         if current.exists():
             current.replace(backup_dir / name)
 
-    joblib.dump(joblib.load(info["artifact_path"]), model_dir / "selected_pipeline.joblib")
+    pipeline = joblib.load(info["artifact_path"])
+    joblib.dump(pipeline, model_dir / "selected_pipeline.joblib")
     payload = {
         "model_key": model_key,
         "model_name": info["model_name"],
@@ -399,7 +422,8 @@ def promote(run_id: str, model_key: str) -> dict:
         "classes": metadata["classes"],
         "categorical_features": metadata["categorical_features"],
         "numerical_features": metadata["numerical_features"],
-        "all_feature_names": _feature_names(metadata),
+        "feature_ranges": metadata.get("feature_ranges") or previous_ranges,
+        "all_feature_names": _feature_names(pipeline),
         "cv": info["cv"],
         "test_metrics": {k: v for k, v in info["test"].items()
                          if k not in ("confusion_matrix", "report")},
@@ -432,17 +456,11 @@ def promote(run_id: str, model_key: str) -> dict:
     return payload
 
 
-def _feature_names(metadata: dict) -> list[str]:
-    """Hitung ulang nama fitur hasil one-hot (harus sama urutannya dengan preprocessor)."""
-    pre = preprocessing_module()
-    preprocessor = pre.build_preprocessor(metadata["categorical_features"], metadata["numerical_features"])
-    # preprocessor belum di-fit; ambil nama kategori unik dari dataset agar konsisten
-    import pandas as pd
+def _feature_names(pipeline) -> list[str]:
+    """Nama fitur hasil one-hot, diambil dari preprocessor yang sudah ter-fit.
 
-    df = pd.read_csv(dataset_path(metadata["dataset_id"]))
-    prepared = prepare(df, metadata["target_column"])
-    preprocessor.fit(prepared["X"])
-    cat_names = preprocessor.named_transformers_["cat"].get_feature_names_out(
-        metadata["categorical_features"]
-    ).tolist()
-    return cat_names + metadata["numerical_features"]
+    Membaca dari pipeline (bukan membangun ulang preprocessor dari dataset) supaya
+    promote tidak butuh ulang file upload maupun matplotlib dari 01_preprocessing.
+    """
+    preprocessor = pipeline.named_steps["preprocessor"]
+    return [str(name).split("__", 1)[-1] for name in preprocessor.get_feature_names_out()]

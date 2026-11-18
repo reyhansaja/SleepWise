@@ -287,6 +287,7 @@ void main() {
     expect(find.byIcon(Icons.dark_mode_rounded), findsOneWidget);
 
     await tester.tap(find.byTooltip('Ganti Tema'));
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byIcon(Icons.light_mode_rounded), findsOneWidget);
     await tester.scrollUntilVisible(

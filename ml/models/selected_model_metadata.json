@@ -1,6 +1,6 @@
 {
-  "model_key": "decision_tree",
-  "model_name": "Decision Tree",
+  "model_key": "random_forest",
+  "model_name": "Random Forest",
   "selection_metric": "cv_f1_weighted",
   "selection_rule": "dipilih manual dari halaman ML Training",
   "pipeline_path": "C:\\ListPc\\PBL\\SleepWise\\ml\\models\\selected_pipeline.joblib",
@@ -25,6 +25,87 @@
     "Systolic_BP",
     "Diastolic_BP"
   ],
+  "feature_ranges": {
+    "Gender": {
+      "type": "categorical",
+      "values": [
+        "Female",
+        "Male"
+      ]
+    },
+    "Occupation": {
+      "type": "categorical",
+      "values": [
+        "Accountant",
+        "Doctor",
+        "Engineer",
+        "Lawyer",
+        "Manager",
+        "Nurse",
+        "Sales Representative",
+        "Salesperson",
+        "Scientist",
+        "Software Engineer",
+        "Teacher"
+      ]
+    },
+    "BMI Category": {
+      "type": "categorical",
+      "values": [
+        "Normal",
+        "Obese",
+        "Overweight"
+      ]
+    },
+    "Sleep Disorder": {
+      "type": "categorical",
+      "values": [
+        "Insomnia",
+        "None",
+        "Sleep Apnea"
+      ]
+    },
+    "Age": {
+      "type": "numeric",
+      "min": 27.0,
+      "max": 59.0
+    },
+    "Sleep Duration": {
+      "type": "numeric",
+      "min": 5.8,
+      "max": 8.5
+    },
+    "Physical Activity Level": {
+      "type": "numeric",
+      "min": 30.0,
+      "max": 90.0
+    },
+    "Stress Level": {
+      "type": "numeric",
+      "min": 3.0,
+      "max": 8.0
+    },
+    "Heart Rate": {
+      "type": "numeric",
+      "min": 65.0,
+      "max": 86.0
+    },
+    "Daily Steps": {
+      "type": "numeric",
+      "min": 3000.0,
+      "max": 10000.0
+    },
+    "Systolic_BP": {
+      "type": "numeric",
+      "min": 115.0,
+      "max": 142.0
+    },
+    "Diastolic_BP": {
+      "type": "numeric",
+      "min": 75.0,
+      "max": 95.0
+    }
+  },
   "all_feature_names": [
     "Gender_Female",
     "Gender_Male",
@@ -32,7 +113,6 @@
     "Occupation_Doctor",
     "Occupation_Engineer",
     "Occupation_Lawyer",
-    "Occupation_Manager",
     "Occupation_Nurse",
     "Occupation_Sales Representative",
     "Occupation_Salesperson",
@@ -56,11 +136,11 @@
   ],
   "cv": {
     "folds": 3,
-    "accuracy_mean": 0.9564646464646464,
-    "accuracy_std": 0.017196061175366397,
-    "f1_weighted_mean": 0.9531175967355024,
-    "f1_weighted_std": 0.019911122468540588,
-    "f1_macro_mean": 0.7919402044501965
+    "accuracy_mean": 0.9765656565656565,
+    "accuracy_std": 0.004856895062695456,
+    "f1_weighted_mean": 0.9765831192982265,
+    "f1_weighted_std": 0.005047168591092867,
+    "f1_macro_mean": 0.9332518207214071
   },
   "test_metrics": {
     "accuracy": 1.0,
@@ -97,6 +177,6 @@
       "test_f1_macro": 1.0
     }
   ],
-  "selected_at": "2026-11-12T14:41:04+00:00",
-  "source_run": "20261112144056-e66729"
+  "selected_at": "2026-11-18T15:47:47+00:00",
+  "source_run": "20261028031252-d4091b"
 }

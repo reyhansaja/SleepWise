@@ -3,7 +3,7 @@ import logging
 
 from database import db
 from services import recommendation_service
-from services.model_loader import registry
+from services.model_loader import ModelUnavailable, registry
 
 log = logging.getLogger(__name__)
 
@@ -40,14 +40,72 @@ REQUIRED_CATEGORICAL = ("gender", "bmi_category")
 
 BMI_LABELS = {"underweight", "normal", "normal weight", "overweight", "obese"}
 
+# Ambang klinis: input separah ini tidak boleh dilabeli "cukup"/"baik" oleh model,
+# karena model hanya dilatih pada rentang data yang lebih ringan (lihat diagnostics).
+# ponytail: aturan keras di kode, bukan model. Naik level = label baru dari dataset.
+CLINICAL_GUARDRAILS = (
+    ("sleep_duration", lambda v: v < 5, "Durasi tidur {v:.1f} jam < 5 jam"),
+    ("stress_level", lambda v: v >= 9, "Tingkat stres {v:.0f}/10 sangat tinggi"),
+    ("heart_rate", lambda v: v >= 100, "Detak jantung istirahat {v:.0f} bpm (takikardia)"),
+)
 
-def normalize(payload) -> tuple[dict, list[str]]:
-    """Validasi dan ubah payload JSON menjadi fitur dataset siap-prediksi."""
+
+def _training_ranges() -> dict:
+    """Rentang fitur di data latih, dari metadata model aktif (bisa kosong)."""
+    try:
+        registry.ensure_loaded()
+    except ModelUnavailable:
+        return {}
+    return getattr(registry, "ranges", {}) or {}
+
+
+def _fmt(value) -> str:
+    """3.0 -> '3', 5.8 -> '5.8' (rentang metadata lebih mudah dibaca)."""
+    number = float(value)
+    return str(int(number)) if number.is_integer() else f"{number:g}"
+
+
+def out_of_range(field: str, value) -> str | None:
+    """Pesan bila nilai input di luar rentang data latih (model mengekstrapolasi)."""
+    info = _training_ranges().get(FIELD_MAP.get(field, ""))
+    if not info or info.get("type") != "numeric" or value is None:
+        return None
+    low, high = info.get("min"), info.get("max")
+    if low is None or high is None or low <= value <= high:
+        return None
+    label = _fmt(value) if isinstance(value, float) else str(value)
+    return (f"{field} = {label} di luar rentang data latih "
+            f"{_fmt(low)}–{_fmt(high)}; prediksi kurang dapat dipercaya.")
+
+
+def clinical_guardrail(prediction: str, data: dict) -> tuple[str, list[str]]:
+    """Turunkan label ke 'Poor' bila input jelas berisiko, tanpa menyembunyikan hasil model."""
+    reasons = [
+        message.format(v=data[field])
+        for field, test, message in CLINICAL_GUARDRAILS
+        if data.get(field) is not None and test(data[field])
+    ]
+    systolic, diastolic = data.get("systolic_bp"), data.get("diastolic_bp")
+    if systolic is not None and diastolic is not None and (systolic >= 160 or diastolic >= 100):
+        reasons.append(f"Tekanan darah {systolic}/{diastolic} mmHg (hipertensi derajat 2)")
+    if not reasons or prediction == "Poor":
+        return prediction, reasons
+    return "Poor", reasons
+
+
+
+def normalize(payload) -> tuple[dict, list[str], list[str]]:
+    """Validasi dan ubah payload JSON menjadi fitur dataset siap-prediksi.
+
+    Mengembalikan (data, errors, warnings): warnings = nilai valid tapi di luar
+    rentang data latih, sehingga prediksi tetap jalan namun bisa diberi peringatan.
+    """
     if not isinstance(payload, dict):
-        return {}, ["Body request harus berupa objek JSON."]
+        return {}, ["Body request harus berupa objek JSON."], []
 
     raw = {str(k).strip().lower(): v for k, v in payload.items() if k != "model"}
     errors: list[str] = []
+    warnings: list[str] = []
 
     # Tekanan darah boleh dikirim sebagai "120/80"
     if "blood_pressure" in raw and "/" in str(raw["blood_pressure"]):
@@ -94,6 +152,9 @@ def normalize(payload) -> tuple[dict, list[str]]:
             errors.append(f"Field '{field}' harus di antara {low} dan {high}.")
             continue
         cleaned[field] = number if field == "sleep_duration" else int(round(number))
+        warning = out_of_range(field, cleaned[field])
+        if warning:
+            warnings.append(warning)
 
     cleaned["sleep_disorder"] = cleaned.get("sleep_disorder", "None")
     cleaned.setdefault("occupation", "Other")
@@ -104,7 +165,7 @@ def normalize(payload) -> tuple[dict, list[str]]:
         except (TypeError, ValueError):
             errors.append("Field 'user_id' harus berupa bilangan bulat.")
 
-    return cleaned, errors
+    return cleaned, errors, warnings
 
 
 def to_features(data: dict) -> dict:
@@ -116,10 +177,15 @@ def to_features(data: dict) -> dict:
     return features
 
 
-def create_prediction(data: dict, model_name: str | None = None) -> dict:
-    """Jalankan inferensi, susun rekomendasi, lalu simpan ke MySQL."""
+def create_prediction(data: dict, model_name: str | None = None,
+                      warnings: list[str] | None = None) -> dict:
+    """Jalankan inferensi, terapkan guardrail klinis, susun rekomendasi, simpan."""
     result = registry.predict(to_features(data), model_name)
-    recommendations = recommendation_service.build_recommendations(result["prediction"], data)
+    model_prediction = result["prediction"]
+    final_prediction, guardrail_reasons = clinical_guardrail(model_prediction, data)
+    recommendations = recommendation_service.build_recommendations(
+        final_prediction, data, guardrail_reasons
+    )
 
     prediction_id = db.execute(
         """INSERT INTO predictions
@@ -132,7 +198,7 @@ def create_prediction(data: dict, model_name: str | None = None) -> dict:
             data.get("sleep_duration"), data.get("physical_activity_level"), data.get("stress_level"),
             data.get("bmi_category"), data.get("heart_rate"), data.get("daily_steps"),
             data.get("systolic_bp"), data.get("diastolic_bp"), data.get("sleep_disorder"),
-            result["prediction"], result["confidence"], result["model_name"],
+            final_prediction, result["confidence"], result["model_name"],
         ),
     )
 
@@ -150,9 +216,15 @@ def create_prediction(data: dict, model_name: str | None = None) -> dict:
         "recommendations_stored": stored_recommendations,
         "model": result["model_name"],
         "model_key": result["model_key"],
-        "prediction": result["prediction"],
+        "prediction": final_prediction,
+        "model_prediction": model_prediction,
+        "guardrail": {
+            "applied": final_prediction != model_prediction,
+            "reasons": guardrail_reasons,
+        },
         "confidence": result["confidence"],
         "probabilities": result["probabilities"],
+        "out_of_range": warnings or [],
         "recommendations": [item.as_dict() for item in recommendations],
         "input": data,
     }

@@ -21,9 +21,17 @@ BASE_MESSAGE = {
 }
 
 
-def build_recommendations(prediction: str, data: dict) -> list[Recommendation]:
+def build_recommendations(prediction: str, data: dict, guardrail_reasons: list[str] | None = None) -> list[Recommendation]:
     """Susun daftar rekomendasi dari kategori prediksi + kondisi input."""
     items = [Recommendation("ringkasan", BASE_MESSAGE.get(prediction, BASE_MESSAGE["Average"]))]
+
+    if guardrail_reasons:
+        items.append(Recommendation(
+            "peringatan_klinis",
+            "Label diturunkan menjadi 'Perlu perhatian' karena: "
+            + "; ".join(guardrail_reasons)
+            + ". Hasil ini prioritas kesehatan, bukan sekadar pola dataset.",
+        ))
 
     duration = data.get("sleep_duration")
     if duration is not None and duration < 7:

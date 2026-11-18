@@ -33,17 +33,39 @@ class ModelRegistry:
     def __init__(self, model_dir: Path | str | None = None):
         self.model_dir = Path(model_dir or Config.MODEL_DIR)
         self._loaded = False
+        self._stamp: tuple | None = None
         self._pipelines: dict[str, object] = {}
         self._names: dict[str, str] = {}
         self.metadata: dict = {}
         self.categorical = CATEGORICAL_DEFAULT
         self.numerical = NUMERICAL_DEFAULT
+        self.ranges: dict = {}
 
     # ── pemuatan artefak ──
+    def _artifact_stamp(self) -> tuple:
+        """Stempel mtime artefak; berubah bila training script menulis model baru."""
+        stamp = []
+        for name in (
+            "selected_pipeline.joblib", "selected_model_metadata.json",
+            "preprocessor.joblib", "random_forest_model.joblib", "decision_tree_model.joblib",
+        ):
+            try:
+                stamp.append((self.model_dir / name).stat().st_mtime_ns)
+            except OSError:
+                stamp.append(None)
+        return tuple(stamp)
+
     def _load(self):
         with _lock:
-            if self._loaded:
+            stamp = self._artifact_stamp()
+            if self._loaded and stamp == self._stamp:
                 return
+            if self._loaded:
+                log.info("Artefak model berubah di disk; memuat ulang.")
+                self._loaded = False
+                self._pipelines.clear()
+                self._names.clear()
+                self.ranges = {}
             selected_path = self.model_dir / "selected_pipeline.joblib"
             meta_path = self.model_dir / "selected_model_metadata.json"
 
@@ -57,6 +79,7 @@ class ModelRegistry:
                 self._names[key] = self._names["selected"]
                 self.categorical = self.metadata.get("categorical_features", CATEGORICAL_DEFAULT)
                 self.numerical = self.metadata.get("numerical_features", NUMERICAL_DEFAULT)
+                self.ranges = self.metadata.get("feature_ranges", {})
                 log.info("Pipeline model terpilih dimuat: %s (%s)", self._names["selected"], selected_path.name)
             else:
                 self._load_legacy()
@@ -66,6 +89,7 @@ class ModelRegistry:
                     "Artefak model tidak ditemukan di "
                     f"{self.model_dir}. Jalankan ml/src/04_model_selection.py lebih dahulu."
                 )
+            self._stamp = stamp
             self._loaded = True
 
     def _load_legacy(self):
@@ -108,6 +132,10 @@ class ModelRegistry:
             f"Model '{model_name}' tidak tersedia. Pilihan: {sorted(self._pipelines)} atau 'selected'."
         )
 
+    def ensure_loaded(self) -> None:
+        """Muat artefak bila belum dimuat (mis. untuk membaca feature_ranges saat validasi)."""
+        self._load()
+
     def reload(self) -> None:
         """Paksa muat ulang artefak (dipakai setelah promote model baru)."""
         with _lock:
@@ -129,7 +157,13 @@ class ModelRegistry:
     def predict(self, features: dict, model_name: str | None = None) -> dict:
         key = self.resolve(model_name)
         pipeline = self._pipelines[key]
-        frame = pd.DataFrame([features])[self.categorical + self.numerical]
+        # Kolom mentah dataset: name di FIELD_MAP harus sama dengan kolom metadata
+        # supaya feature_ranges (kunci = kolom dataset) bisa dipakai untuk validasi.
+        columns = [c for c in self.categorical + self.numerical if c in features]
+        missing = [c for c in self.categorical + self.numerical if c not in features]
+        if missing:
+            raise ValueError(f"Fitur wajib belum dikirim: {', '.join(missing)}")
+        frame = pd.DataFrame([features])[columns]
 
         prediction = str(pipeline.predict(frame)[0])
         probabilities = pipeline.predict_proba(frame)[0]

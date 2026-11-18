@@ -173,3 +173,37 @@ Get-ChildItem lib/features -Recurse -Filter *.dart | Where-Object { $_.FullName 
 ```
 
 Memastikan layer `data` tidak bergantung pada tampilan `presentation`.
+
+## Prediksi memakai model backend (HTTP)
+
+Halaman prediksi tidak lagi memakai skor heuristik lokal. `PredictionRepository`
+diimplementasikan `RemotePredictionRepository` yang mengirim
+`POST /api/predictions` ke backend Flask dan menampilkan `prediction` +
+`confidence` (`predict_proba`) dari model tersimpan.
+
+- Base URL default `http://127.0.0.1:5000/api`; ubah dengan
+  `flutter run --dart-define=API_BASE=http://192.168.1.10:5000/api`.
+- Di HP Android: `adb reverse tcp:5000 tcp:5000`, jadi default tetap 127.0.0.1.
+- Payload 1:1 dengan skema dataset: `gender, age, occupation, sleep_duration,
+  physical_activity_level` (menit/hari), `stress_level, bmi_category, heart_rate,
+  daily_steps, systolic_bp, diastolic_bp`.
+- Label kelas model (`Good`/`Average`/`Poor`) diterjemahkan ke bahasa Indonesia
+  di repository, bukan di widget.
+
+Uji:
+
+```powershell
+flutter test test/features/prediction                             # payload + widget, tanpa server
+flutter test test/features/prediction/data/live_predict_test.dart # butuh backend jalan
+```
+
+Respons backend memuat dua lapis pengaman yang ditampilkan app:
+
+- `out_of_range`: nilai input di luar rentang data latih (min/max dari
+  `selected_model_metadata.json` → `feature_ranges`). Ditampilkan sebagai kotak
+  kuning "Input di luar rentang data latih"; prediksi tetap jalan tapi ditandai
+  kurang dapat dipercaya.
+- `guardrail`: aturan klinis backend (`sleep_duration < 5`, `stress_level >= 9`,
+  `heart_rate >= 100`, `systolic_bp >= 160` atau `diastolic_bp >= 100`) yang
+  menurunkan label ke `Poor` walau model bilang `Good`/`Average`. `model_prediction`
+  tetap dikirim supaya app bisa menulis "Model memprediksi: X — diturunkan …".

@@ -12,7 +12,7 @@ prediction_bp = Blueprint("predictions", __name__, url_prefix="/api/predictions"
 @prediction_bp.post("")
 def create():
     payload = request.get_json(silent=True)
-    data, errors = prediction_service.normalize(payload if payload is not None else {})
+    data, errors, warnings = prediction_service.normalize(payload if payload is not None else {})
     if errors:
         db.execute(
             "INSERT INTO api_request_log (endpoint, status_code, success, error_detail) VALUES (%s, %s, %s, %s)",
@@ -26,7 +26,9 @@ def create():
         data["user_id"] = user["id"]
 
     try:
-        result = prediction_service.create_prediction(data, (payload or {}).get("model"))
+        result = prediction_service.create_prediction(
+            data, (payload or {}).get("model"), warnings
+        )
     except ModelUnavailable as exc:
         return jsonify({"status": "error", "error": str(exc)}), 503
     except ValueError as exc:
