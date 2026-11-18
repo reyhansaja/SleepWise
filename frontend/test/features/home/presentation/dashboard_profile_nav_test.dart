@@ -25,7 +25,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Pastikan berada di Dashboard
-    expect(find.text('Selamat Pagi, Sarah! ✨'), findsOneWidget);
+    expect(find.textContaining('Sarah! ✨'), findsOneWidget);
 
     // Temukan ProfileAvatar di header Dashboard dan tap
     final avatarInDashboard = find.descendant(

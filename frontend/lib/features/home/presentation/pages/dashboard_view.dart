@@ -86,14 +86,17 @@ class _DashboardViewState extends State<DashboardView> {
 }
 
 // Bagian ini berisi urutan kartu utama seperti pada rancangan dashboard.
-class _DashboardContent extends StatelessWidget {
+class _DashboardContent extends ConsumerWidget {
   final VoidCallback? onProfileTap;
 
   const _DashboardContent({this.onProfileTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final profile = ref.watch(userProfileProvider);
+    final greeting = getGreeting();
+    final firstName = getFirstName(profile.fullName);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +114,7 @@ class _DashboardContent extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Selamat Pagi, Sarah! ✨',
+          '$greeting, $firstName! ✨',
           style: TextStyle(
             color: colors.onSurface,
             fontSize: 29,
@@ -1045,4 +1048,29 @@ String _formattedToday() {
   final today = DateTime.now();
   return '${days[today.weekday - 1]}, ${today.day} '
       '${months[today.month - 1]} ${today.year}';
+}
+
+/// Menghasilkan kata sapaan berdasarkan waktu lokal perangkat:
+/// - 04:00 - 10:59: Selamat Pagi
+/// - 11:00 - 14:59: Selamat Siang
+/// - 15:00 - 17:59: Selamat Sore
+/// - 18:00 - 03:59: Selamat Malam
+String getGreeting([DateTime? time]) {
+  final hour = (time ?? DateTime.now()).hour;
+  if (hour >= 4 && hour < 11) {
+    return 'Selamat Pagi';
+  } else if (hour >= 11 && hour < 15) {
+    return 'Selamat Siang';
+  } else if (hour >= 15 && hour < 18) {
+    return 'Selamat Sore';
+  } else {
+    return 'Selamat Malam';
+  }
+}
+
+/// Mengambil satu kata pertama dari nama lengkap pengguna
+String getFirstName(String fullName) {
+  final trimmed = fullName.trim();
+  if (trimmed.isEmpty) return 'Pengguna';
+  return trimmed.split(RegExp(r'\s+')).first;
 }

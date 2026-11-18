@@ -40,7 +40,7 @@ void main() {
     );
 
     expect(find.text('SleepWise'), findsOneWidget);
-    expect(find.text('Selamat Pagi, Sarah! ✨'), findsOneWidget);
+    expect(find.textContaining('Sarah! ✨'), findsOneWidget);
     expect(find.text('7.5'), findsOneWidget);
     expect(find.text('Ringkasan Statistik'), findsOneWidget);
     expect(find.text('Dashboard'), findsNWidgets(2));
@@ -224,10 +224,10 @@ void main() {
     await tester.pumpAndSettle();
 
     final dashboardContext = tester.element(
-      find.text('Selamat Pagi, Sarah! ✨'),
+      find.textContaining('Sarah! ✨'),
     );
     final colors = Theme.of(dashboardContext).colorScheme;
-    final greeting = tester.widget<Text>(find.text('Selamat Pagi, Sarah! ✨'));
+    final greeting = tester.widget<Text>(find.textContaining('Sarah! ✨'));
     final sleepDuration = tester.widget<Text>(find.text('7.5'));
 
     expect(colors.brightness, Brightness.light);
@@ -258,7 +258,7 @@ void main() {
     expect(find.byTooltip('Ganti Tema'), findsOneWidget);
     expect(find.byIcon(Icons.dark_mode_rounded), findsOneWidget);
     expect(
-      Theme.of(tester.element(find.text('Selamat Pagi, Sarah! ✨'))).brightness,
+      Theme.of(tester.element(find.textContaining('Sarah! ✨'))).brightness,
       Brightness.dark,
     );
 
@@ -267,7 +267,7 @@ void main() {
 
     expect(find.byIcon(Icons.light_mode_rounded), findsOneWidget);
     expect(
-      Theme.of(tester.element(find.text('Selamat Pagi, Sarah! ✨'))).brightness,
+      Theme.of(tester.element(find.textContaining('Sarah! ✨'))).brightness,
       Brightness.light,
     );
   });
