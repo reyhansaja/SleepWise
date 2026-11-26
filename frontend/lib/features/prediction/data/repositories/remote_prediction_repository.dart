@@ -59,14 +59,17 @@ class RemotePredictionRepository implements PredictionRepository {
       };
 
   @override
-  Future<PredictionResult> predict(PredictionInput input) async {
+  Future<PredictionResult> predict(PredictionInput input, {String? token}) async {
     final uri = Uri.parse('$_baseUrl/predictions');
     final http.Response response;
     try {
       response = await _client
           .post(
             uri,
-            headers: const {'Content-Type': 'application/json'},
+            headers: {
+              'Content-Type': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
             body: jsonEncode(payload(input)),
           )
           .timeout(_timeout);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
+import 'package:frontend/core/widgets/sleepwise_logo.dart';
 import 'package:frontend/features/prediction/data/repositories/remote_prediction_repository.dart';
 import 'package:frontend/features/prediction/domain/entities/prediction_input.dart';
 import 'package:frontend/features/prediction/domain/entities/prediction_result.dart';
@@ -132,14 +133,6 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
                   _buildBioFeedbackPreview(),
                   const SizedBox(height: 20),
                   _buildCtaButton(),
-                  if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    _buildError(),
-                  ],
-                  if (_result != null) ...[
-                    const SizedBox(height: 12),
-                    _buildResultCard(_result!),
-                  ],
                   const SizedBox(height: 24),
                 ]),
               ),

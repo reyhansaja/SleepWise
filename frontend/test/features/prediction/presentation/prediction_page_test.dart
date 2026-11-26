@@ -13,7 +13,7 @@ class _FakeRepository implements PredictionRepository {
   PredictionInput? received;
 
   @override
-  Future<PredictionResult> predict(PredictionInput input) async {
+  Future<PredictionResult> predict(PredictionInput input, {String? token}) async {
     received = input;
     if (error != null) throw PredictionException(error!);
     return const PredictionResult(

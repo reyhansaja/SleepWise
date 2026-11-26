@@ -9,5 +9,4 @@ class PredictSleepQuality {
 
   Future<PredictionResult> call(PredictionInput input, {String? token}) =>
       repository.predict(input, token: token);
-  Future<PredictionResult> call(PredictionInput input) => repository.predict(input);
 }
