@@ -167,40 +167,17 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
               ),
             ],
           ),
-          Row(
-            children: [
-              IconButton(
-                tooltip: 'Ganti Tema',
-                onPressed: () {
-                  ref.read(themeModeProvider.notifier).toggle();
-                },
-                icon: Icon(
-                  isDarkMode
-                      ? Icons.dark_mode_rounded
-                      : Icons.light_mode_rounded,
-                  color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
-                ),
-              ),
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.5),
-                    width: 1.5,
-                  ),
-                  color: colors.surface,
-                ),
-                child: ClipOval(
-                  child: Icon(
-                    Icons.person_rounded,
-                    color: colors.onSurfaceVariant.withValues(alpha: 0.8),
-                    size: 24,
-                  ),
-                ),
-              ),
-            ],
+          IconButton(
+            tooltip: 'Ganti Tema',
+            onPressed: () {
+              ref.read(themeModeProvider.notifier).toggle();
+            },
+            icon: Icon(
+              isDarkMode
+                  ? Icons.dark_mode_rounded
+                  : Icons.light_mode_rounded,
+              color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
+            ),
           ),
         ],
       ),

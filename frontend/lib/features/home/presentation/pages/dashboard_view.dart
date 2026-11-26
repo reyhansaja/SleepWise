@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/navigation/app_routes.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/core/widgets/sleepwise_logo.dart';
+import '../../../profile/presentation/providers/user_profile_provider.dart';
+import '../../../profile/presentation/widgets/profile_avatar.dart';
 
 const _mint = Color(0xFF43DFAE);
 const _orange = Color(0xFFFFB34D);
@@ -52,7 +55,15 @@ class _DashboardViewState extends State<DashboardView> {
                       width: contentWidth,
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-                        child: const _DashboardContent(),
+                        child: _DashboardContent(
+                          onProfileTap: () {
+                            if (widget.onTabSelected != null) {
+                              widget.onTabSelected!(4);
+                            } else {
+                              Navigator.pushNamed(context, AppRoutes.profile);
+                            }
+                          },
+                        ),
                       ),
                     ),
                   );
@@ -75,17 +86,22 @@ class _DashboardViewState extends State<DashboardView> {
 }
 
 // Bagian ini berisi urutan kartu utama seperti pada rancangan dashboard.
-class _DashboardContent extends StatelessWidget {
-  const _DashboardContent();
+class _DashboardContent extends ConsumerWidget {
+  final VoidCallback? onProfileTap;
+
+  const _DashboardContent({this.onProfileTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final profile = ref.watch(userProfileProvider);
+    final greeting = getGreeting();
+    final firstName = getFirstName(profile.fullName);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _DashboardHeader(),
+        _DashboardHeader(onProfileTap: onProfileTap),
         const SizedBox(height: 18),
         Text(
           _formattedToday(),
@@ -98,7 +114,7 @@ class _DashboardContent extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Selamat Pagi, Sarah! ✨',
+          '$greeting, $firstName! ✨',
           style: TextStyle(
             color: colors.onSurface,
             fontSize: 29,
@@ -129,12 +145,15 @@ class _DashboardContent extends StatelessWidget {
 
 // Header menampilkan identitas aplikasi dan avatar pengguna.
 class _DashboardHeader extends ConsumerWidget {
-  const _DashboardHeader();
+  final VoidCallback? onProfileTap;
+
+  const _DashboardHeader({this.onProfileTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final isDarkMode = colors.brightness == Brightness.dark;
+    final profile = ref.watch(userProfileProvider);
 
     return Row(
       children: [
@@ -153,7 +172,7 @@ class _DashboardHeader extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(height: 3),
+              const SizedBox(height: 3),
               Text(
                 'Dashboard',
                 style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
@@ -171,19 +190,17 @@ class _DashboardHeader extends ConsumerWidget {
             color: isDarkMode ? const Color(0xFF60A5FA) : Colors.amber,
           ),
         ),
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: colors.outline, width: 2),
-            gradient: const LinearGradient(
-              colors: [Color(0xFFF5D4B3), Color(0xFF8CA2BC)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        GestureDetector(
+          onTap: onProfileTap,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: ProfileAvatar(
+              avatarId: profile.avatarId,
+              radius: 20,
+              showBorder: true,
+              borderColor: colors.outline,
             ),
           ),
-          child: Icon(Icons.person_rounded, color: colors.onSurface, size: 25),
         ),
       ],
     );
@@ -1031,4 +1048,29 @@ String _formattedToday() {
   final today = DateTime.now();
   return '${days[today.weekday - 1]}, ${today.day} '
       '${months[today.month - 1]} ${today.year}';
+}
+
+/// Menghasilkan kata sapaan berdasarkan waktu lokal perangkat:
+/// - 04:00 - 10:59: Selamat Pagi
+/// - 11:00 - 14:59: Selamat Siang
+/// - 15:00 - 17:59: Selamat Sore
+/// - 18:00 - 03:59: Selamat Malam
+String getGreeting([DateTime? time]) {
+  final hour = (time ?? DateTime.now()).hour;
+  if (hour >= 4 && hour < 11) {
+    return 'Selamat Pagi';
+  } else if (hour >= 11 && hour < 15) {
+    return 'Selamat Siang';
+  } else if (hour >= 15 && hour < 18) {
+    return 'Selamat Sore';
+  } else {
+    return 'Selamat Malam';
+  }
+}
+
+/// Mengambil satu kata pertama dari nama lengkap pengguna
+String getFirstName(String fullName) {
+  final trimmed = fullName.trim();
+  if (trimmed.isEmpty) return 'Pengguna';
+  return trimmed.split(RegExp(r'\s+')).first;
 }
