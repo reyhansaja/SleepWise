@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/theme/theme_provider.dart';
 import 'package:frontend/core/widgets/sleepwise_logo.dart';
-import 'package:frontend/features/auth/data/auth_service.dart';
-import 'package:frontend/features/prediction/data/repositories/api_prediction_repository.dart';
+import 'package:frontend/features/prediction/data/repositories/remote_prediction_repository.dart';
 import 'package:frontend/features/prediction/domain/entities/prediction_input.dart';
 import 'package:frontend/features/prediction/domain/entities/prediction_result.dart';
 import 'package:frontend/features/prediction/domain/usecases/predict_sleep_quality.dart';
@@ -12,8 +11,7 @@ import 'package:frontend/features/prediction/presentation/widgets/aktivitas_fisi
 import 'package:frontend/features/prediction/presentation/widgets/bmi_widget.dart';
 import 'package:frontend/features/prediction/presentation/widgets/detak_jantung_widget.dart';
 import 'package:frontend/features/prediction/presentation/widgets/durasi_tidur_widget.dart';
-import 'package:frontend/features/prediction/presentation/widgets/kafein_widget.dart';
-import 'package:frontend/features/prediction/presentation/widgets/layar_malam_widget.dart';
+import 'package:frontend/features/prediction/presentation/widgets/profil_klinis_widget.dart';
 import 'package:frontend/features/prediction/presentation/widgets/tingkat_stres_widget.dart';
 
 class PredictionPage extends ConsumerStatefulWidget {
@@ -25,19 +23,25 @@ class PredictionPage extends ConsumerStatefulWidget {
 
 class _PredictionPageState extends ConsumerState<PredictionPage>
     with SingleTickerProviderStateMixin {
-
-  bool _loading = false;
-  PredictionResult? _result;
-  String? _error;
-
-  // ── State variables ──
+  // ── State variabel: nama & tipe mengikuti skema dataset ──
   double _durasiTidur = 7.5;
-  int _aktivitasFisikIndex = 1; // Sedang
+  int _aktivitasFisikIndex = 1; // 0 Ringan, 1 Sedang, 2 Intensif -> menit
   double _tingkatStres = 4;
-  int _kafein = 1;
-  double _layarMalam = 45;
   int _detakJantung = 68;
   int _bmiIndex = 1; // Normal
+  String _gender = 'Male';
+  int _usia = 30;
+  String _pekerjaan = 'Engineer';
+  int _langkahHarian = 7000;
+  int _sistolik = 120;
+  int _diastolik = 80;
+
+  bool _loading = false;
+  String? _error;
+  PredictionResult? _result;
+
+  /// Indeks widget aktivitas -> menit/hari (skala kolom Physical Activity Level).
+  static const List<int> _aktivitasMenit = [20, 45, 90];
 
   late AnimationController _glowController;
 
@@ -93,19 +97,6 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
                     onChanged: (v) => setState(() => _tingkatStres = v),
                   ),
                   const SizedBox(height: 12),
-                  KafeinWidget(
-                    value: _kafein,
-                    onDecrement: () {
-                      if (_kafein > 0) setState(() => _kafein--);
-                    },
-                    onIncrement: () => setState(() => _kafein++),
-                  ),
-                  const SizedBox(height: 12),
-                  LayarMalamWidget(
-                    value: _layarMalam,
-                    onChanged: (v) => setState(() => _layarMalam = v),
-                  ),
-                  const SizedBox(height: 12),
                   DetakJantungWidget(
                     value: _detakJantung,
                     onChanged: (v) => setState(() => _detakJantung = v),
@@ -115,18 +106,33 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
                     selectedIndex: _bmiIndex,
                     onChanged: (v) => setState(() => _bmiIndex = v),
                   ),
+                  const SizedBox(height: 12),
+                  ProfilKlinisWidget(
+                    gender: _gender,
+                    age: _usia,
+                    occupation: _pekerjaan,
+                    dailySteps: _langkahHarian,
+                    systolicBp: _sistolik,
+                    diastolicBp: _diastolik,
+                    onGenderChanged: (v) => setState(() => _gender = v),
+                    onAgeChanged: (v) => setState(() => _usia = v),
+                    onOccupationChanged: (v) => setState(() => _pekerjaan = v),
+                    onDailyStepsChanged: (v) => setState(() => _langkahHarian = v),
+                    onSystolicChanged: (v) => setState(() => _sistolik = v),
+                    onDiastolicChanged: (v) => setState(() => _diastolik = v),
+                  ),
                   const SizedBox(height: 20),
+                  if (_error != null) ...[
+                    _buildErrorBox(),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_result != null) ...[
+                    _buildResultCard(),
+                    const SizedBox(height: 16),
+                  ],
                   _buildBioFeedbackPreview(),
                   const SizedBox(height: 20),
                   _buildCtaButton(),
-                  if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    _buildError(),
-                  ],
-                  if (_result != null) ...[
-                    const SizedBox(height: 12),
-                    _buildResultCard(_result!),
-                  ],
                   const SizedBox(height: 24),
                 ]),
               ),
@@ -403,21 +409,20 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          if (_loading)
-                            const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          else
-                            const Icon(
-                              Icons.auto_awesome,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+                          _loading
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.auto_awesome,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                           const SizedBox(width: 8),
                           Text(
                             _loading
@@ -433,7 +438,7 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '⚡ Estimasi kalkulasi model < 1 detik • Privasi data lokal terjamin',
+                        '⚡ Dihitung model ML di server • Hasil tersimpan untuk riwayat',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.7),
                           fontSize: 10,
@@ -451,82 +456,68 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
   }
 
   Future<void> _runPrediction() async {
+    final input = PredictionInput(
+      gender: _gender,
+      age: _usia,
+      occupation: _pekerjaan,
+      sleepDuration: _durasiTidur,
+      physicalActivityLevel: _aktivitasMenit[
+          _aktivitasFisikIndex.clamp(0, _aktivitasMenit.length - 1).toInt()],
+      stressLevel: _tingkatStres.round().clamp(1, 10).toInt(),
+      bmiCategory: const ['Underweight', 'Normal', 'Overweight', 'Obese'][
+          _bmiIndex.clamp(0, 3).toInt()],
+      heartRate: _detakJantung,
+      dailySteps: _langkahHarian,
+      systolicBp: _sistolik,
+      diastolicBp: _diastolik,
+    );
+
     setState(() {
       _loading = true;
       _error = null;
-      _result = null;
     });
 
     try {
-      final result = await PredictSleepQuality(
-        ref.read(predictionRepositoryProvider),
-      )(
-        PredictionInput(
-          sleepDuration: _durasiTidur,
-          physicalActivityLevel: _aktivitasFisikIndex,
-          stressLevel: _tingkatStres,
-          caffeineServings: _kafein,
-          nightScreenMinutes: _layarMalam,
-          heartRate: _detakJantung,
-          bmiCategory: _bmiIndex,
-        ),
-        token: ref.read(authSessionProvider)?.token,
-      );
+      final predict = PredictSleepQuality(ref.read(predictionRepositoryProvider));
+      final result = await predict(input);
       if (!mounted) return;
-      setState(() => _result = result);
-    } catch (e) {
+      setState(() {
+        _result = result;
+        _loading = false;
+      });
+    } on PredictionException catch (error) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      setState(() {
+        _error = error.message;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Prediksi gagal: $error';
+        _loading = false;
+      });
     }
   }
 
-  Widget _buildError() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF87171).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: const Color(0xFFF87171).withValues(alpha: 0.4)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.error_outline_rounded, size: 18, color: Color(0xFFF87171)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _error!,
-              style: const TextStyle(
-                color: Color(0xFFF87171),
-                fontSize: 12.5,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResultCard(PredictionResult result) {
+  // ── Kartu hasil inferensi model ──
+  Widget _buildResultCard() {
+    final result = _result!;
     final colors = Theme.of(context).colorScheme;
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
-        color: colors.surface,
+        color: AppTheme.primary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppTheme.accent.withValues(alpha: 0.4)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.verified_rounded, size: 18, color: AppTheme.accent),
-              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   result.label,
@@ -538,34 +529,94 @@ class _PredictionPageState extends ConsumerState<PredictionPage>
                 ),
               ),
               Text(
-                'keyakinan ${result.score}%',
-                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+                '${result.confidencePercent}%',
+                style: const TextStyle(
+                  color: AppTheme.primaryLight,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          for (final message in result.recommendations)
+          const SizedBox(height: 4),
+          Text(
+            result.guardrailApplied
+                ? 'Model memprediksi: ${result.modelLabel} — diturunkan ke "Perlu perhatian" oleh aturan klinis'
+                : 'Model: ${result.modelName} • probabilitas predict_proba',
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
+          ),
+          const SizedBox(height: 12),
+          for (final item in result.recommendations)
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.circle, size: 5, color: colors.onSurfaceVariant),
-                  const SizedBox(width: 8),
+                  Text('• ', style: TextStyle(color: colors.primary, fontSize: 13)),
                   Expanded(
                     child: Text(
-                      message,
+                      item,
                       style: TextStyle(
-                        color: colors.onSurfaceVariant,
-                        fontSize: 12.5,
-                        height: 1.45,
+                        color: colors.onSurface,
+                        fontSize: 12,
+                        height: 1.4,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
+          if (result.outOfRange.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(AppTheme.spacingMd),
+              decoration: BoxDecoration(
+                color: AppTheme.warning.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                border: Border.all(color: AppTheme.warning.withValues(alpha: 0.4)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Input di luar rentang data latih',
+                    style: TextStyle(
+                      color: AppTheme.warning,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  for (final note in result.outOfRange)
+                    Text(
+                      '• $note',
+                      style: const TextStyle(
+                        color: AppTheme.warning,
+                        fontSize: 11,
+                        height: 1.4,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildErrorBox() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      decoration: BoxDecoration(
+        color: AppTheme.error.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppTheme.error.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        _error!,
+        style: const TextStyle(color: AppTheme.error, fontSize: 12, height: 1.4),
       ),
     );
   }

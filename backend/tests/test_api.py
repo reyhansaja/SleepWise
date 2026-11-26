@@ -87,6 +87,32 @@ class PredictionApiTest(unittest.TestCase):
         self.assertTrue(any(r["category"] == "stres" for r in poor["recommendations"]))
         self.assertTrue(any(r["category"] == "tekanan_darah" for r in poor["recommendations"]))
 
+    def test_out_of_range_warning(self):
+        payload = dict(VALID, sleep_duration=3.0, stress_level=10, heart_rate=108,
+                       blood_pressure="160/105")
+        response = self.client.post("/api/predictions", json=payload)
+        self.assertEqual(response.status_code, 201, response.get_json())
+        body = response.get_json()
+        notes = " ".join(body["out_of_range"])
+        for field in ("sleep_duration", "stress_level", "heart_rate", "systolic_bp"):
+            self.assertIn(field, notes)
+
+    def test_clinical_guardrail_lowers_label(self):
+        payload = dict(VALID, sleep_duration=3.0, stress_level=10, heart_rate=108,
+                       blood_pressure="160/105")
+        body = self.client.post("/api/predictions", json=payload).get_json()
+        self.assertEqual(body["prediction"], "Poor")
+        self.assertIn(body["model_prediction"], {"Good", "Average", "Poor"})
+        self.assertTrue(body["guardrail"]["reasons"])
+        categories = [r["category"] for r in body["recommendations"]]
+        self.assertIn("peringatan_klinis", categories)
+
+    def test_guardrail_green_on_healthy_input(self):
+        body = self.client.post("/api/predictions", json=VALID).get_json()
+        self.assertEqual(body["guardrail"]["applied"], False)
+        self.assertEqual(body["guardrail"]["reasons"], [])
+        self.assertNotIn("peringatan_klinis", [r["category"] for r in body["recommendations"]])
+
     def test_optional_fields_use_defaults(self):
         payload = dict(VALID)
         payload.pop("occupation")
@@ -144,6 +170,10 @@ class TrainingApiTest(unittest.TestCase):
         from app import create_app
 
         cls.client = create_app().test_client()
+        # Endpoint /api/ml/* wajib header bila TRAINING_TOKEN diisi di .env
+        from config import Config
+
+        cls.auth = {"X-Training-Token": Config.TRAINING_TOKEN} if Config.TRAINING_TOKEN else {}
         if not cls.RAW_CSV.exists():
             raise unittest.SkipTest("dataset mentah tidak tersedia")
         with cls.RAW_CSV.open("rb") as handle:
@@ -151,6 +181,7 @@ class TrainingApiTest(unittest.TestCase):
                 "/api/ml/upload",
                 data={"file": (io.BytesIO(handle.read()), cls.RAW_CSV.name)},
                 content_type="multipart/form-data",
+                headers=cls.auth,
             )
         assert response.status_code == 201, response.get_json()
         cls.dataset = response.get_json()
@@ -166,6 +197,7 @@ class TrainingApiTest(unittest.TestCase):
             "/api/ml/upload",
             data={"file": (io.BytesIO(b"nope"), "data.txt")},
             content_type="multipart/form-data",
+            headers=self.auth,
         )
         self.assertEqual(response.status_code, 400)
 
@@ -173,6 +205,7 @@ class TrainingApiTest(unittest.TestCase):
         response = self.client.post(
             "/api/ml/train",
             json={"dataset_id": self.dataset["dataset_id"], "params": {"n_estimators": 60, "folds": 3}},
+            headers=self.auth,
         )
         self.assertEqual(response.status_code, 201, response.get_json())
         body = response.get_json()
@@ -190,7 +223,7 @@ class TrainingApiTest(unittest.TestCase):
         self.assertEqual(self.client.get(f"/api/ml/runs/{body['run_id']}").status_code, 200)
 
         promoted = self.client.post(
-            f"/api/ml/runs/{body['run_id']}/promote", json={"model_key": "decision_tree"}
+            f"/api/ml/runs/{body['run_id']}/promote", json={"model_key": "decision_tree"}, headers=self.auth
         )
         self.assertEqual(promoted.status_code, 200, promoted.get_json())
         self.assertEqual(promoted.get_json()["model_key"], "decision_tree")
